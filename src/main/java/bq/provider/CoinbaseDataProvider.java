@@ -18,7 +18,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import kong.unirest.core.HttpResponse;
 import kong.unirest.core.Unirest;
 import org.slf4j.Logger;
@@ -29,8 +28,9 @@ public class CoinbaseDataProvider extends DataProvider {
   static Logger logger = Slogger.forEnclosingClass();
   RateLimiter limit = RateLimiter.create(1.5);
 
-  public static final int MAX_PAGE_SIZE=350;
-  int pageSize=MAX_PAGE_SIZE;
+  public static final int MAX_PAGE_SIZE = 350;
+  int pageSize = MAX_PAGE_SIZE;
+
   public LocalDate getLastClosedTradingDay() {
     return LocalDate.now(Zones.UTC).minusDays(1);
   }
@@ -86,11 +86,10 @@ public class CoinbaseDataProvider extends DataProvider {
 
     HttpResponse<JsonNode> response = Unirest.get(url).asObject(JsonNode.class);
     if (!response.isSuccess()) {
-    	throw new HttpResponseException(response.getStatus());
+      throw new HttpResponseException(response.getStatus());
     }
-    
+
     return response.getBody();
-  
   }
 
   public static OHLCV toOHLCV(JsonNode n) {
@@ -131,8 +130,9 @@ public class CoinbaseDataProvider extends DataProvider {
   @Override
   public Stream<OHLCV> fetch(Request request) {
 
-    logger.atTrace().log(
-        "symbol={} from={} to={}", toCoinbaseSymbol(request.symbol), request.from, request.to);
+    logger
+        .atTrace()
+        .log("symbol={} from={} to={}", toCoinbaseSymbol(request.symbol), request.from, request.to);
 
     if (request.from != null && request.to != null) {
       if (request.from.isAfter(request.to)) {
@@ -153,7 +153,7 @@ public class CoinbaseDataProvider extends DataProvider {
     List<OHLCV> results = Lists.newLinkedList();
 
     LocalDate ref = notAfter;
-   
+
     int responseSize = 0;
     do {
 
