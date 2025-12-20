@@ -15,16 +15,24 @@ public class BasicOHLCV implements OHLCV {
   BigDecimal low;
   BigDecimal close;
   BigDecimal volume;
+  Long id;
 
   public static OHLCV of(
       LocalDate t, Double open, Double high, Double low, Double close, Double vol) {
+
+    return of(t, open, high, low, close, vol, null);
+  }
+
+  public static OHLCV of(
+      LocalDate t, Double open, Double high, Double low, Double close, Double vol, Long id) {
     return of(
         t.atStartOfDay(Zones.UTC).toInstant(),
         open != null ? new BigDecimal(open.toString()) : null,
         high != null ? new BigDecimal(high.toString()) : null,
         low != null ? new BigDecimal(low.toString()) : null,
         close != null ? new BigDecimal(close.toString()) : null,
-        vol != null ? new BigDecimal(vol.toString()) : null);
+        vol != null ? new BigDecimal(vol.toString()) : null,
+        id);
   }
 
   public static OHLCV of(
@@ -34,7 +42,18 @@ public class BasicOHLCV implements OHLCV {
       BigDecimal low,
       BigDecimal close,
       BigDecimal vol) {
-    return of(t.atStartOfDay(Zones.UTC).toInstant(), open, high, low, close, vol);
+    return of(t.atStartOfDay(Zones.UTC).toInstant(), open, high, low, close, vol, null);
+  }
+
+  public static OHLCV of(
+      LocalDate t,
+      BigDecimal open,
+      BigDecimal high,
+      BigDecimal low,
+      BigDecimal close,
+      BigDecimal vol,
+      Long id) {
+    return of(t.atStartOfDay(Zones.UTC).toInstant(), open, high, low, close, vol, id);
   }
 
   public static OHLCV of(
@@ -44,6 +63,17 @@ public class BasicOHLCV implements OHLCV {
       BigDecimal low,
       BigDecimal close,
       BigDecimal volume) {
+    return of(t, open, high, low, close, volume, null);
+  }
+
+  public static OHLCV of(
+      Instant t,
+      BigDecimal open,
+      BigDecimal high,
+      BigDecimal low,
+      BigDecimal close,
+      BigDecimal volume,
+      Long id) {
     BasicOHLCV b = new BasicOHLCV();
 
     b.ts = t;
@@ -52,6 +82,7 @@ public class BasicOHLCV implements OHLCV {
     b.low = low;
     b.close = close;
     b.volume = volume;
+    b.id = id;
 
     return b;
   }
@@ -98,13 +129,34 @@ public class BasicOHLCV implements OHLCV {
     } else {
       datePart = ts.toString();
     }
-    return MoreObjects.toStringHelper("OLHCV")
-        .add("date", datePart)
-        .add("o", getOpen().orElse(null))
-        .add("h", getHigh().orElse(null))
-        .add("l", getLow().orElse(null))
-        .add("c", getClose().orElse(null))
-        .add("v", getVolume().orElse(null))
-        .toString();
+    var h =
+        MoreObjects.toStringHelper("OLHCV")
+            .add("date", datePart)
+            .add("o", getOpen().orElse(null))
+            .add("h", getHigh().orElse(null))
+            .add("l", getLow().orElse(null))
+            .add("c", getClose().orElse(null))
+            .add("v", getVolume().orElse(null));
+
+    getId()
+        .ifPresent(
+            id -> {
+              h.add("id", id);
+            });
+    return h.toString();
+  }
+
+  public Optional<Long> getId() {
+    return Optional.ofNullable(id);
+  }
+
+  @Override
+  public int compareTo(Object o) {
+    if (o == null || (!(o instanceof OHLCV))) {
+      return 1;
+    }
+
+    OHLCV other = (OHLCV) o;
+    return getDate().compareTo(other.getDate());
   }
 }

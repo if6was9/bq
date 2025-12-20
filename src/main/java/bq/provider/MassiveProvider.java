@@ -47,7 +47,7 @@ public class MassiveProvider extends DataProvider {
     if (request.to == null) {
       from = LocalDate.now().minusDays(90).toString();
     } else {
-      from = request.to.toString();
+      from = request.from.toString();
     }
     if (request.to == null) {
       to = LocalDate.now(Zones.NYC).toString();
@@ -79,7 +79,10 @@ public class MassiveProvider extends DataProvider {
       throw new BxException(msg);
     }
 
-    return Json.asStream(response.getBody().path("results")).map(this::toOHLCV);
+    JsonNode body = response.getBody();
+
+    // timestamps from massive for daily aggregates use 00:00 NYC as the start period
+    return Json.asStream(body.path("results")).map(this::toOHLCV);
   }
 
   OHLCV toOHLCV(JsonNode n) {

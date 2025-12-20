@@ -76,7 +76,7 @@ public abstract class DataProvider {
               .withNumFactory(DoubleNumFactory.getInstance())
               .build();
 
-      List<Bar> bars = fetchStream().map(ohlcv -> Bars.toBar(ohlcv, s)).toList();
+      List<Bar> bars = fetchStream().map(ohlcv -> Bars.toBar(ohlcv)).toList();
       return new BaseBarSeriesBuilder()
           .withName(symbol)
           .withNumFactory(DoubleNumFactory.getInstance())

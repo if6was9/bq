@@ -1,11 +1,13 @@
 package bq;
 
+import com.google.common.collect.Lists;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class BasicOHLCVTest {
+public class BasicOHLCVTest extends BqTest {
 
   @Test
   public void testIt() {
@@ -39,5 +41,19 @@ public class BasicOHLCVTest {
     Assertions.assertThat(candle.getCloseAsDouble()).isEmpty();
     Assertions.assertThat(candle.getVolume()).isEmpty();
     Assertions.assertThat(candle.getVolumeAsDouble()).isEmpty();
+  }
+
+  @Test
+  public void testSort() {
+    var list = getSampleGOOG();
+
+    var shuffled = Lists.newArrayList(list);
+    Collections.shuffle(shuffled);
+
+    Assertions.assertThat(shuffled).containsExactlyInAnyOrderElementsOf(list);
+
+    var sorted = list.stream().sorted().toList();
+
+    Assertions.assertThat(list).containsExactlyElementsOf(sorted);
   }
 }

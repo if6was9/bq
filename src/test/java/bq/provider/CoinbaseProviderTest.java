@@ -1,12 +1,34 @@
 package bq.provider;
 
 import bq.BqTest;
+import bq.ta4j.Bars;
 import bx.util.Zones;
 import java.time.LocalDate;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class CoinbaseProviderTest extends BqTest {
+
+  @Test
+  public void testX() {
+    CoinbaseDataProvider cb = new CoinbaseDataProvider();
+    var t =
+        cb.dataSource(getDataSource())
+            .forSymbol("btc")
+            .from(LocalDate.of(2025, 12, 1))
+            .to(LocalDate.of(2025, 12, 7));
+
+    t.fetchStream()
+        .forEach(
+            it -> {
+              System.out.println(it);
+            });
+    Bars.toIterator(t.fetchBarSeries())
+        .forEachRemaining(
+            it -> {
+              System.out.println(it);
+            });
+  }
 
   @Test
   void testId() {

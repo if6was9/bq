@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
 
-public interface OHLCV {
+public interface OHLCV extends Comparable {
 
   LocalDate getDate();
 
@@ -20,6 +20,8 @@ public interface OHLCV {
   Optional<BigDecimal> getClose();
 
   Optional<BigDecimal> getVolume();
+
+  Optional<Long> getId();
 
   default Optional<Double> optDouble(Optional<BigDecimal> bd) {
     if (bd == null) {
