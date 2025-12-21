@@ -17,8 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.event.Level;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
-import com.google.common.base.Preconditions;
-
 public abstract class BqTest {
 
   static Logger logger = Slogger.forEnclosingClass();
@@ -43,7 +41,6 @@ public abstract class BqTest {
     return PrettyQuery.with(getDataSource()).out(logger, Level.INFO);
   }
 
-
   public DuckTable loadBtcPriceData(String table) {
 
     getDuckDataManager().createOHLCV(table, true);
@@ -63,13 +60,12 @@ public abstract class BqTest {
   @BeforeEach
   public void setup() {
 
-
-	String name = System.getProperty("app.name");
-	if (!S.notBlank(name).orElse("").equals("bq")) {
-		System.setProperty("app.name", "bq");
-		name = System.getProperty("app.name");
-		Preconditions.checkState(S.notBlank(name).orElse("").equals("bq"));
-	}
+    String name = System.getProperty("app.name");
+    if (!S.notBlank(name).orElse("").equals("bq")) {
+      System.setProperty("app.name", "bq");
+      name = System.getProperty("app.name");
+      Preconditions.checkState(S.notBlank(name).orElse("").equals("bq"));
+    }
 
     logger.atTrace().log("setup");
     dataSource = DuckDataSource.createInMemory();

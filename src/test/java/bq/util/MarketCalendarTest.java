@@ -6,8 +6,6 @@ import java.time.temporal.ChronoUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import bq.util.MarketCalendar;
-
 public class MarketCalendarTest {
 
   @Test

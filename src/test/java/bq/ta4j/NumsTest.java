@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.NaN;
 
-import bq.ta4j.Nums;
-
 public class NumsTest {
 
   @Test

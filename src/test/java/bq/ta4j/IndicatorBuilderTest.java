@@ -1,8 +1,6 @@
 package bq.ta4j;
 
 import bq.BqTest;
-import bq.ta4j.Bars;
-import bq.ta4j.IndicatorBuilder;
 import bx.util.Json;
 import bx.util.Slogger;
 import org.assertj.core.api.Assertions;

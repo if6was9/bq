@@ -5,6 +5,7 @@ import bq.OHLCV;
 import bx.util.Item;
 import bx.util.Iterators;
 import bx.util.Zones;
+import com.google.common.collect.Lists;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -18,8 +19,6 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.BarSeriesBuilder;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.num.DoubleNumFactory;
-
-import com.google.common.collect.Lists;
 
 public class Bars {
 
@@ -130,8 +129,6 @@ public class Bars {
 
     return Iterators.toStream(toIterator(series));
   }
-  
-
 
   /**
    * TA4J BarSeries indexes are unusual *AND* necessary to use indicators.

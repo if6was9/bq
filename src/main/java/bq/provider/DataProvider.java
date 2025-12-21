@@ -87,8 +87,7 @@ public abstract class DataProvider {
     public DuckTable fetchIntoTable() {
       String tableName = String.format("temp_%s", System.currentTimeMillis());
 
-
-      Preconditions.checkState(dataSource!=null,"DataSource must be set");
+      Preconditions.checkState(dataSource != null, "DataSource must be set");
 
       DataManager ddm = new DataManager().dataSource(dataSource);
 
@@ -104,7 +103,6 @@ public abstract class DataProvider {
       return DuckTable.of(dataSource, table);
     }
   }
-
 
   public <T extends DataProvider> T dataSource(DataSource ds) {
     this.dataSource = ds;

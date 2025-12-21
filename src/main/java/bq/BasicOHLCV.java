@@ -1,13 +1,11 @@
 package bq;
 
-
 import bx.util.Zones;
 import com.google.common.base.MoreObjects;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
-
 
 public class BasicOHLCV implements OHLCV {
 
@@ -201,6 +199,4 @@ public class BasicOHLCV implements OHLCV {
     }
     return Optional.empty();
   }
-
- 
 }

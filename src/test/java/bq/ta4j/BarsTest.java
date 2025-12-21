@@ -147,7 +147,6 @@ public class BarsTest extends BqTest {
         b -> {
           int i = t.getBarIndex();
 
-      
           Bar bar = bs.getBar(i);
 
           Optional<Integer> x =
@@ -157,15 +156,17 @@ public class BarsTest extends BqTest {
           Assertions.assertThat(x.get()).isEqualTo(i);
         });
   }
-  
+
   @Test
   public void testItemList() {
-	  var goog = getSampleGOOG();
+    var goog = getSampleGOOG();
 
-	    var bs = Bars.toBarSeries(goog.stream());
-	    
-	    Bars.toIndexedList(bs).forEach(it->{
-	    	Assertions.assertThat(bs.getBar(it.index())).isSameAs(it.get());	   
-	    });
+    var bs = Bars.toBarSeries(goog.stream());
+
+    Bars.toIndexedList(bs)
+        .forEach(
+            it -> {
+              Assertions.assertThat(bs.getBar(it.index())).isSameAs(it.get());
+            });
   }
 }

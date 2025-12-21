@@ -50,15 +50,14 @@ public class CoinbaseProviderTest extends BqTest {
 
     CoinbaseDataProvider cb = new CoinbaseDataProvider();
 
-var t=
-    cb.dataSource(getDataSource()).forSymbol("btc")
-        .from(LocalDate.of(2017, 12, 1))
-        .to(LocalDate.of(2025, 12, 7))
-        .fetchIntoTable();
-    
-    t.prettyQuery().select();
-    
+    var t =
+        cb.dataSource(getDataSource())
+            .forSymbol("btc")
+            .from(LocalDate.of(2017, 12, 1))
+            .to(LocalDate.of(2025, 12, 7))
+            .fetchIntoTable();
 
+    t.prettyQuery().select();
   }
 
   @Test

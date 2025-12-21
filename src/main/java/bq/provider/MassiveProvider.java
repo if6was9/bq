@@ -1,15 +1,5 @@
 package bq.provider;
 
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-
 import bq.BasicOHLCV;
 import bq.OHLCV;
 import bx.util.BxException;
@@ -18,12 +8,18 @@ import bx.util.Json;
 import bx.util.S;
 import bx.util.Slogger;
 import bx.util.Zones;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.Optional;
+import java.util.stream.Stream;
 import kong.unirest.core.Unirest;
+import org.slf4j.Logger;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.MissingNode;
 
 public class MassiveProvider extends DataProvider {
-
 
   static Logger logger = Slogger.forEnclosingClass();
 
@@ -104,6 +100,4 @@ public class MassiveProvider extends DataProvider {
         (BigDecimal) n.path("c").asDecimalOpt().orElse(null),
         (BigDecimal) n.path("v").asDecimalOpt().orElse(null));
   }
-
-
 }
