@@ -1,15 +1,14 @@
 package bq;
 
 import bx.util.Slogger;
-import java.io.IOException;
+import java.util.Map;
 import org.slf4j.Logger;
 
 public class Main {
 
   static Logger logger = Slogger.forEnclosingClass();
 
-  public static void main(String[] args) throws IOException {
+  static ThreadLocal<Map<String, Object>> threadLocal = new ThreadLocal<Map<String, Object>>();
 
-    logger.atInfo().log("Hello!");
-  }
+  public static void main(String[] args) throws Exception {}
 }

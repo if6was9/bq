@@ -1,0 +1,3 @@
+#!/bin/sh
+
+jshell --startup DEFAULT --startup PRINTING --class-path "target/*:target/stage/lib/*" init.jsh 
