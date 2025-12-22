@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 
 CLASSPATH_OPTS=
-if [[ -f "${SCRIPT_DIR}/pom.xml" ]]; then 
+if [[ -f "${SCRIPT_DIR}/target/stage/lib" ]]; then 
     CLASSPATH_OPTS="--class-path ${SCRIPT_DIR}/target/*:${SCRIPT_DIR}/target/stage/lib/*"
     INIT_SCRIPT=${SCRIPT_DIR}/src/main/resources/bqsh/bqsh-init.jsh
     EXIT_SCRIPT=${SCRIPT_DIR}/src/main/resources/bqsh/bqsh-exit.jsh
