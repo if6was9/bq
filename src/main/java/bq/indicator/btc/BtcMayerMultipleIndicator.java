@@ -25,7 +25,7 @@ public class BtcMayerMultipleIndicator extends AbstractIndicator<Num> {
   public BtcMayerMultipleIndicator(Indicator<Num> indicator) {
     super(indicator.getBarSeries());
     sma200 = new SMAIndicator(indicator, BAR_COUNT);
-    indicator = base;
+    base = indicator;
   }
 
   @Override

@@ -16,6 +16,11 @@ public class PriceTableTest extends BqTest {
     Assertions.assertThat(pt.getDuckTable()).isNotNull();
 
     // ema(foo(close),3)
+
+    var ema = new EMAIndicator(new ClosePriceIndicator(pt.getBarSeries()), 3);
+
+    System.out.println(ema.getValue(0));
+
     pt.addIndicator(
         "ema",
         bs -> {

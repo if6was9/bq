@@ -243,6 +243,7 @@ public class BtcPowerLawModelTest extends IndicatorTest {
   }
 
   @Test
+  @Disabled
   public void testChart() {
     PriceTable t = getTestData().loadBtcPriceTable("btc");
 

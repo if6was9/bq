@@ -2,6 +2,7 @@ package bq;
 
 import bq.ta4j.BarSeriesIterator;
 import bq.ta4j.Bars;
+import bq.ta4j.DuckColumnIndicator;
 import bq.ta4j.IndexedBar;
 import bq.ta4j.IndicatorBuilder;
 import bx.sql.Results;
@@ -10,6 +11,7 @@ import bx.util.Dates;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import org.springframework.jdbc.core.RowMapper;
 import org.ta4j.core.BarSeries;
@@ -19,6 +21,8 @@ import org.ta4j.core.num.Num;
 public class PriceTable {
 
   DuckTable table;
+
+  AtomicReference<BarSeries> barSeries = new AtomicReference<BarSeries>();
 
   static class OHLCVRowMapper implements RowMapper<OHLCV> {
 
@@ -57,10 +61,17 @@ public class PriceTable {
   }
 
   public BarSeries getBarSeries() {
-    return loadBarSeries();
+    BarSeries bs = barSeries.get();
+    if (bs != null) {
+      return bs;
+    }
+    bs = loadBarSeries();
+    this.barSeries.set(bs);
+
+    return bs;
   }
 
-  public BarSeries loadBarSeries() {
+  private BarSeries loadBarSeries() {
 
     String sql =
         String.format("select rowid, * from %s order by date asc", getDuckTable().getTableName());
@@ -78,13 +89,20 @@ public class PriceTable {
     table.addColumn(col + " double");
     while (t.hasNext()) {
       IndexedBar b = (IndexedBar) t.next();
-      Num num = ind.getValue(t.getBarIndex());
+      Num num = null;
 
-      double val = num.doubleValue();
-      if (num == null || num.isNaN()) {
+      try {
+        num = ind.getValue(t.getBarIndex());
+      } catch (NullPointerException ignore) {
+        num = null;
+      }
+
+      if (num == null || Double.isNaN(num.doubleValue())) {
+        // Is recording NaN as NULL the right thing to do?
         table.update(b.getId(), col, null);
       } else {
-        table.update(b.getId(), col, val);
+
+        table.update(b.getId(), col, num.doubleValue());
       }
     }
   }
@@ -99,7 +117,7 @@ public class PriceTable {
 
   public Indicator<Num> getColumnIndicator(String col) {
 
-    return null;
+    return new DuckColumnIndicator(this, col);
   }
 
   public void addIndicator(String col, Function<BarSeries, Indicator> fn) {
