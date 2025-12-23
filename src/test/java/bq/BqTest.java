@@ -161,7 +161,14 @@ public abstract class BqTest {
   }
 
   @BeforeEach
-  void disableDesktop() {
+  void disableDesktopIfMultipleTetsAreRun() {
+
+    // It is nice to be able to open a chart from a unit test.  However, when running a whole suite,
+    // it is annoying to have a bunch of browser tabs/windows open. So what we do here is disable
+    // the
+    // browser open if we have more than one test run.
+    //
+    // This will not work if the FIRST test that is run happens to open a chart.
 
     if (testCount.getAndIncrement() > 1) {
       Chart.disableBrowser();
