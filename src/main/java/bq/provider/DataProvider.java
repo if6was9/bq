@@ -5,10 +5,10 @@ import bq.OHLCV;
 import bq.ta4j.Bars;
 import bx.sql.duckdb.DuckTable;
 import bx.util.Zones;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import org.ta4j.core.Bar;
@@ -21,16 +21,26 @@ public abstract class DataProvider {
   DataSource dataSource;
 
   public class Request {
-    LocalDate from;
-    LocalDate to;
-    String symbol;
+    LocalDate from = null;
+    LocalDate to = null;
+    String symbol = null;
+    boolean includeUnclosedPeriod = true;
 
     public Optional<LocalDate> getFrom() {
-      return Optional.of(from);
+      return java.util.Optional.ofNullable(from);
+    }
+
+    public Request includeUnclosedPeriod(boolean b) {
+      this.includeUnclosedPeriod = b;
+      return this;
+    }
+
+    public boolean isUnclosedPeriodIncluded() {
+      return includeUnclosedPeriod;
     }
 
     public Optional<LocalDate> getTo() {
-      return Optional.of(to);
+      return Optional.ofNullable(to);
     }
 
     public Request fromDaysAgo(int count) {
@@ -123,6 +133,10 @@ public abstract class DataProvider {
   public <T extends DataProvider> T dataSource(DataSource ds) {
     this.dataSource = ds;
     return (T) this;
+  }
+
+  public LocalDate getDefaultNotBefore() {
+    return LocalDate.now(Zones.UTC).minusYears(2);
   }
 
   public Request newRequest(String symbol) {

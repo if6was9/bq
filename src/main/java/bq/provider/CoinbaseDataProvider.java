@@ -35,40 +35,7 @@ public class CoinbaseDataProvider extends CachingDataProvider {
     return LocalDate.now(Zones.UTC).minusDays(1);
   }
 
-  public LocalDate getDefaultNotBefore() {
-    return LocalDate.now(Zones.UTC).minusYears(2);
-  }
-
-  public Stream<OHLCV> loadAll(String product) {
-
-    List<OHLCV> data = Lists.newArrayList();
-    LocalDate dt = getLastClosedTradingDay();
-    int inc = -350;
-    int candleCount = 0;
-    do {
-      var json = loadJson(product, dt, inc);
-
-      json.path("candles")
-          .forEach(
-              jc -> {
-                OHLCV val = toOHLCV(jc);
-                data.add(val);
-              });
-      candleCount = json.path("candles").size();
-
-      if (candleCount > 0) {
-        var lastCandle = json.path("candles").get(candleCount - 1);
-
-        Instant lastTs = Instant.ofEpochSecond(lastCandle.path("start").asLong());
-
-        dt = lastTs.atZone(Zones.UTC).toLocalDate().minusDays(1);
-      }
-
-    } while (candleCount > 0);
-    return data.stream();
-  }
-
-  public JsonNode loadJson(String product, LocalDate start, long count) {
+  private JsonNode loadJson(String product, LocalDate start, long count) {
 
     if (start == null) {
       start = getLastClosedTradingDay();
@@ -141,9 +108,8 @@ public class CoinbaseDataProvider extends CachingDataProvider {
   @Override
   public Stream<OHLCV> fetch(Request request) {
 
-    logger
-        .atTrace()
-        .log("symbol={} from={} to={}", toCoinbaseSymbol(request.symbol), request.from, request.to);
+    logger.atInfo().log(
+        "symbol={} from={} to={}", toCoinbaseSymbol(request.symbol), request.from, request.to);
 
     if (request.from != null && request.to != null) {
       if (request.from.isAfter(request.to)) {
@@ -158,10 +124,15 @@ public class CoinbaseDataProvider extends CachingDataProvider {
     if (notBefore == null) {
       notBefore = getDefaultNotBefore();
     }
-    if (request.to == null) {
+    if (notAfter == null) {
       notAfter = ZonedDateTime.now(Zones.UTC).toLocalDate();
     }
 
+    if (request.isUnclosedPeriodIncluded() == false) {
+      if (notAfter.isAfter(getLastClosedTradingDay())) {
+        notAfter = getLastClosedTradingDay();
+      }
+    }
     logger.atTrace().log("start at {}", notAfter);
 
     List<OHLCV> results = Lists.newLinkedList();
@@ -187,6 +158,7 @@ public class CoinbaseDataProvider extends CachingDataProvider {
         }
 
         if (!(it.getDate().isBefore(notBefore) || it.getDate().isAfter(notAfter))) {
+
           results.add(it);
         }
       }

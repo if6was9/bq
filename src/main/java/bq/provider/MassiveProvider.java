@@ -93,7 +93,23 @@ public class MassiveProvider extends CachingDataProvider {
     }
 
     // timestamps from massive for daily aggregates use 00:00 NYC as the start period
-    return Json.asStream(body.path("results")).map(this::toOHLCV);
+    return Json.asStream(body.path("results"))
+        .map(this::toOHLCV)
+        .filter(
+            it -> {
+              if (request.isUnclosedPeriodIncluded() == false) {
+                if (it.getDate().isAfter(getLastClosedTradingDay())) {
+                  return false;
+                }
+              }
+              ;
+
+              return true;
+            });
+  }
+
+  public LocalDate getLastClosedTradingDay() {
+    return LocalDate.now(Zones.UTC).minusDays(1);
   }
 
   OHLCV toOHLCV(JsonNode n) {

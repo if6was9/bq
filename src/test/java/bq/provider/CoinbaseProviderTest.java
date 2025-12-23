@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 
 public class CoinbaseProviderTest extends BqTest {
 
-  Logger logger = Slogger.forEnclosingClass();
+  static Logger logger = Slogger.forEnclosingClass();
 
   @Test
   public void testX() {
@@ -59,17 +59,11 @@ public class CoinbaseProviderTest extends BqTest {
 
     CoinbaseDataProvider cb = new CoinbaseDataProvider();
 
-    var t =
-        cb.dataSource(getDataSource())
-            .newRequest("btc")
-            //   .from(LocalDate.of(2017, 12, 1))
-            //   .to(LocalDate.of(2025, 12, 7))
-            .fetchStream()
-            .toList();
+    // if not from is set, a value of 2 years is set.
+    var t = cb.dataSource(getDataSource()).newRequest("btc").fetchStream().toList();
 
-    System.out.println(t.getFirst());
-    System.out.println(t.getLast());
     checkOrdering(t);
+    Assertions.assertThat(t.getFirst().getDate()).isEqualTo(LocalDate.now(Zones.UTC).minusYears(2));
   }
 
   @Test
@@ -124,13 +118,14 @@ public class CoinbaseProviderTest extends BqTest {
     var t =
         new CoinbaseDataProvider()
             .dataSource(getDataSource())
-            .newRequest("doge")
+            .newRequest("BTC")
             .fetchStream()
             .toList();
 
-    Assertions.assertThat(t.size()).isGreaterThan(1660);
-
     checkOrdering(t);
+
+    Assertions.assertThat(t.getFirst().getDate()).isAfterOrEqualTo(LocalDate.now().minusYears(2));
+    Assertions.assertThat(t.size()).isGreaterThanOrEqualTo(730).isLessThanOrEqualTo(732);
   }
 
   @Test
@@ -148,10 +143,60 @@ public class CoinbaseProviderTest extends BqTest {
   }
 
   @Test
-  public void testNullTo() {
+  public void testNullToWithExcludeUnclosed() {
     CoinbaseDataProvider cb = new CoinbaseDataProvider();
 
     var candles =
+        cb.newRequest("btc")
+            .from(LocalDate.now(Zones.UTC).minusDays(3))
+            .to(null)
+            .includeUnclosedPeriod(false)
+            .fetchStream()
+            .toList();
+
+    candles.forEach(
+        it -> {
+          System.out.println(it);
+        });
+    Assertions.assertThat(candles).hasSize(3);
+
+    Assertions.assertThat(candles.get(0).getDate())
+        .isEqualTo(cb.getLastClosedTradingDay().minusDays(2));
+    Assertions.assertThat(candles.get(1).getDate())
+        .isEqualTo(cb.getLastClosedTradingDay().minusDays(1));
+
+    Assertions.assertThat(candles.get(2).getDate())
+        .isEqualTo(cb.getLastClosedTradingDay().minusDays(0));
+  }
+
+  @Test
+  public void testNullToWithIncludeUnclosed() {
+    CoinbaseDataProvider cb = new CoinbaseDataProvider();
+
+    var candles =
+        cb.newRequest("btc")
+            .from(LocalDate.now(Zones.UTC).minusDays(3))
+            .to(null)
+            .includeUnclosedPeriod(true)
+            .fetchStream()
+            .toList();
+
+    candles.forEach(
+        it -> {
+          System.out.println(it);
+        });
+
+    Assertions.assertThat(candles.size()).isEqualTo(4);
+    Assertions.assertThat(candles.get(0).getDate())
+        .isEqualTo(LocalDate.now(Zones.UTC).minusDays(3));
+    Assertions.assertThat(candles.get(1).getDate())
+        .isEqualTo(LocalDate.now(Zones.UTC).minusDays(2));
+    Assertions.assertThat(candles.get(2).getDate())
+        .isEqualTo(LocalDate.now(Zones.UTC).minusDays(1));
+    Assertions.assertThat(candles.get(3).getDate())
+        .isEqualTo(LocalDate.now(Zones.UTC).minusDays(0));
+
+    candles =
         cb.newRequest("btc")
             .from(LocalDate.now(Zones.UTC).minusDays(3))
             .to(null)
@@ -162,12 +207,16 @@ public class CoinbaseProviderTest extends BqTest {
         it -> {
           System.out.println(it);
         });
-    Assertions.assertThat(candles).hasSize(4);
-    Assertions.assertThat(candles.getLast().getDate()).isEqualTo(LocalDate.now(Zones.UTC));
-    Assertions.assertThat(candles.get(candles.size() - 1).getDate())
-        .isEqualTo(LocalDate.now(Zones.UTC));
-    Assertions.assertThat(candles.get(candles.size() - 2).getDate())
-        .isEqualTo(cb.getLastClosedTradingDay());
+
+    Assertions.assertThat(candles.size()).isEqualTo(4);
+    Assertions.assertThat(candles.get(0).getDate())
+        .isEqualTo(LocalDate.now(Zones.UTC).minusDays(3));
+    Assertions.assertThat(candles.get(1).getDate())
+        .isEqualTo(LocalDate.now(Zones.UTC).minusDays(2));
+    Assertions.assertThat(candles.get(2).getDate())
+        .isEqualTo(LocalDate.now(Zones.UTC).minusDays(1));
+    Assertions.assertThat(candles.get(3).getDate())
+        .isEqualTo(LocalDate.now(Zones.UTC).minusDays(0));
   }
 
   @Test
@@ -229,6 +278,15 @@ public class CoinbaseProviderTest extends BqTest {
     Assertions.assertThat(speedup)
         .withFailMessage("cache speedup should be >10x")
         .isGreaterThan(10);
+  }
+
+  @Test
+  public void testRequestDefault() {
+    var cb = new CoinbaseDataProvider();
+    Assertions.assertThat(cb.newRequest().isUnclosedPeriodIncluded()).isTrue();
+
+    Assertions.assertThat(cb.newRequest().getFrom().isPresent()).isFalse();
+    Assertions.assertThat(cb.newRequest().getTo().isPresent()).isFalse();
   }
 
   @Test
