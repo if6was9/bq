@@ -41,17 +41,17 @@ public class MassiveProviderTest extends BqTest {
 
   @Test
   public void testCache() {
-    var cb = new MassiveProvider();
-    cb.invalidateAll();
+    var massive = new MassiveProvider();
+    massive.invalidateAll();
 
     Stopwatch sw = Stopwatch.createStarted();
-    cb.newRequest("btc").from(2020, 1, 1).fetchStream().forEach(it -> {});
+    massive.newRequest("GOOG").from(2020, 1, 1).fetchStream().forEach(it -> {});
     long uncachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
 
     logger.atInfo().log("uncached {}ms", uncachedMs);
 
     sw = Stopwatch.createStarted();
-    cb.newRequest("GOOG").from(2020, 1, 1).fetchStream().forEach(it -> {});
+    massive.newRequest("GOOG").from(2020, 1, 1).fetchStream().forEach(it -> {});
     long cachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
 
     logger.atInfo().log("cached {}ms", cachedMs);
