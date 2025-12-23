@@ -260,7 +260,7 @@ public class Chart {
         return;
       }
 
-      logger.atInfo().log("opening %s", f);
+      logger.atInfo().log("opening {}", f);
       Desktop.getDesktop().open(f);
     } catch (IOException e) {
       throw new BqException(e);
