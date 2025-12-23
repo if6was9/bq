@@ -1,9 +1,7 @@
 package bq.indicator;
 
-import com.google.common.base.Preconditions;
-
 import bx.util.Zones;
-
+import com.google.common.base.Preconditions;
 import java.time.ZonedDateTime;
 import java.util.function.Function;
 import org.ta4j.core.Bar;

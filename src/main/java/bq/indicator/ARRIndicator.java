@@ -1,21 +1,19 @@
 package bq.indicator;
 
+import bx.util.Slogger;
+import bx.util.Zones;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.AbstractIndicator;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
-
-import bx.util.Slogger;
-import bx.util.Zones;
 
 /**
  * Look at the trailing N days/years and compute an annualized rate of return.
@@ -75,7 +73,6 @@ public class ARRIndicator extends AbstractIndicator<Num> {
     Bar b1 = getBarSeries().getBar(index);
     ZonedDateTime t1 = b1.getBeginTime().atZone(Zones.UTC);
 
-  
     ZonedDateTime t0 = t1.minusDays((int) (years * 365));
 
     Optional<Bar> b0 = findFirstBarOnOrBefore(t0);
@@ -87,8 +84,6 @@ public class ARRIndicator extends AbstractIndicator<Num> {
 
     return DoubleNum.valueOf(arr);
   }
-
- 
 
   public double calculateARR(Bar b0, Bar b1) {
 
@@ -123,6 +118,6 @@ public class ARRIndicator extends AbstractIndicator<Num> {
 
   @Override
   public int getCountOfUnstableBars() {
-	return 0;
+    return 0;
   }
 }

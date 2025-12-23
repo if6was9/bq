@@ -90,7 +90,7 @@ public class IndicatorBuilder {
         new ClassGraph()
             .enableClassInfo()
             .enableMethodInfo()
-            .acceptPackages("org.ta4j")
+            .acceptPackages("org.ta4j", "bq.indicator", "bq.indicator.bq")
             .scan()) { // Start the scan
       for (ClassInfo classInfo : scanResult.getClassesImplementing(Indicator.class)) {
 

@@ -1,6 +1,6 @@
 package bq.indicator.btc;
 
-import bq.ducktape.BarSeriesTable;
+import bq.PriceTable;
 import bq.indicator.IndicatorTest;
 import bq.indicator.btc.BtcPowerLawModel.QuantileModel;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,7 @@ public class BtcPowerLawCalculatorTest extends IndicatorTest {
 
   @Test
   public void testIt() {
-    BarSeriesTable t = loadBtcTable();
+    PriceTable t = getTestData().loadBtcPriceTable("btc");
 
     QuantileModel m = BtcPowerLawCalculator.generateQuantileModel(t.getBarSeries(), 5.65);
   }

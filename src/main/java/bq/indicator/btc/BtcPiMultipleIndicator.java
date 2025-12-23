@@ -1,7 +1,6 @@
 package bq.indicator.btc;
 
-import java.util.concurrent.TimeUnit;
-
+import bx.util.Slogger;
 import org.slf4j.Logger;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.AbstractIndicator;
@@ -10,8 +9,6 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.NaN;
 import org.ta4j.core.num.Num;
-
-import bx.util.Slogger;
 
 public class BtcPiMultipleIndicator extends AbstractIndicator<Num> {
 
@@ -42,7 +39,7 @@ public class BtcPiMultipleIndicator extends AbstractIndicator<Num> {
 
       return DoubleNum.valueOf(piMultiple);
     } catch (RuntimeException e) {
-    	logger.atDebug().setCause(e).log();
+      logger.atDebug().setCause(e).log();
     }
     return NaN.NaN;
   }

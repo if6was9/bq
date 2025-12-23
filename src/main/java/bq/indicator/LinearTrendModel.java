@@ -1,11 +1,9 @@
 package bq.indicator;
 
+import bx.util.Zones;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-
-import bx.util.Zones;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -248,7 +246,8 @@ public class LinearTrendModel {
   }
 
   public LinearTrendModel channel(Bar b) {
-    return channel(b.getBeginTime().atZone(Zones.UTC).toLocalDate(), b.getClosePrice().doubleValue());
+    return channel(
+        b.getBeginTime().atZone(Zones.UTC).toLocalDate(), b.getClosePrice().doubleValue());
   }
 
   public LinearTrendModel channel(LocalDate d, double p) {

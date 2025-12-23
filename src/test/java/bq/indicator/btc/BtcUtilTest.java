@@ -1,12 +1,10 @@
 package bq.indicator.btc;
 
+import bx.util.Slogger;
 import java.time.LocalDate;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
-
-import bx.util.Slogger;
 
 public class BtcUtilTest {
 

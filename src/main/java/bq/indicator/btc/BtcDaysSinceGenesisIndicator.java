@@ -1,12 +1,11 @@
 package bq.indicator.btc;
 
+import bx.util.Zones;
 import java.time.LocalDate;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
-
-import bx.util.Zones;
 
 public class BtcDaysSinceGenesisIndicator extends AbstractBtcEpochIndicator {
 
@@ -28,6 +27,6 @@ public class BtcDaysSinceGenesisIndicator extends AbstractBtcEpochIndicator {
 
   @Override
   public int getCountOfUnstableBars() {
-	return 0;
+    return 0;
   }
 }

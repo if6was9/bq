@@ -1,9 +1,9 @@
 package bq.indicator.btc;
 
-import org.junit.jupiter.api.Test;
-
-
+import bq.PriceTable;
+import bq.chart.Chart;
 import bq.indicator.IndicatorTest;
+import org.junit.jupiter.api.Test;
 
 public class BtcPiMultipleIndicatorTest extends IndicatorTest {
 
@@ -18,21 +18,21 @@ public class BtcPiMultipleIndicatorTest extends IndicatorTest {
   @Test
   public void testIt() {
 
-    BarSeriesTable t = loadBtcTable();
+    PriceTable t = getTestData().loadBtcPriceTable("btc");
 
-    t.addIndicator("btc_pi_multiple() as pi");
+    t.addIndicator("pi", "btc_pi_multiple()");
 
     Chart.newChart()
         .trace(
             "pi",
             trace -> {
-              trace.addData(t, "pi");
+              trace.addData("pi", t);
               trace.yAxis(y -> {});
             })
         .trace(
             "btc",
             trace -> {
-              trace.addData(t, "close");
+              trace.addData("close", t);
               trace.newYAxis(
                   y -> {
                     y.logScale();

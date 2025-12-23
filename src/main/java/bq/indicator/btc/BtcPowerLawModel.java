@@ -2,22 +2,19 @@ package bq.indicator.btc;
 
 import static bq.indicator.btc.BtcPowerLawCalculator.calculateDate;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.function.Supplier;
-
-import org.slf4j.Logger;
-import org.ta4j.core.BarSeries;
-
+import bx.util.ClasspathResources;
+import bx.util.Json;
+import bx.util.Slogger;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
-
-import bx.util.ClasspathResources;
-import bx.util.Json;
-import bx.util.Slogger;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.ta4j.core.BarSeries;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;

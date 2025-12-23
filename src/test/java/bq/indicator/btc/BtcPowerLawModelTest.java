@@ -2,25 +2,21 @@ package bq.indicator.btc;
 
 import static org.assertj.core.api.Assertions.byLessThan;
 
+import bq.PriceTable;
+import bq.chart.Chart;
+import bq.indicator.IndicatorTest;
+import bq.indicator.btc.BtcPowerLawModel.QuantileModel;
+import bx.util.Slogger;
+import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
-
-import com.google.common.io.Files;
-
-import bq.chart.Chart;
-import bq.ducktape.BarSeriesTable;
-import bq.ducktape.DuckTape;
-import bq.indicator.IndicatorTest;
-import bq.indicator.btc.BtcPowerLawModel.QuantileModel;
-import bx.util.Slogger;
 
 public class BtcPowerLawModelTest extends IndicatorTest {
 
@@ -42,15 +38,14 @@ public class BtcPowerLawModelTest extends IndicatorTest {
 
   @Test
   public void rebuildModel() throws IOException {
-    DuckTape tape = DuckTape.createInMemory();
 
-    BarSeriesTable t = tape.importTable("test", btcPriceData);
+    PriceTable t = getTestData().loadBtcPriceTable("test");
 
-    tape.getDb().template().execute("delete from test where date < '2013-01-01'");
+    t.getDuckTable().sql("delete from test where date < '2013-01-01'").update();
 
     BtcPowerLawModel power = BtcPowerLawModel.create();
 
-    QuantileModel m = BtcPowerLawCalculator.generateQuantileModel(tape.getBarSeries("test"), 5.64);
+    QuantileModel m = BtcPowerLawCalculator.generateQuantileModel(t.getBarSeries(), 5.64);
 
     Files.asCharSink(modelOutputFile, StandardCharsets.UTF_8)
         .write(power.getModel().toJson().toPrettyString());
@@ -67,13 +62,10 @@ public class BtcPowerLawModelTest extends IndicatorTest {
   @Test
   @Disabled
   public void testIt() {
-    DuckTape tape = DuckTape.createInMemory();
 
-    BarSeriesTable t = tape.importTable("test", btcPriceData);
+    PriceTable t = getTestData().loadBtcPriceTable("test");
 
-    tape.getDb().template().execute("delete from test where date < '2013-01-01'");
-
-    t = tape.getTable("test");
+    t.getDuckTable().sql("delete from test where date < '2013-01-01'").update();
 
     QuantileModel m = BtcPowerLawCalculator.generateQuantileModel(t.getBarSeries(), 5.65);
 
@@ -252,18 +244,18 @@ public class BtcPowerLawModelTest extends IndicatorTest {
 
   @Test
   public void testChart() {
-    BarSeriesTable t = loadBtcTable();
+    PriceTable t = getTestData().loadBtcPriceTable("btc");
 
-    t.addIndicator("btc_power_law_price(10) as q10");
-    t.addIndicator("btc_power_law_price(50) as q50");
-    t.addIndicator("btc_power_law_price(75) as q75");
-    t.addIndicator("btc_power_law_price(95) as q95");
-    t.addIndicator("btc_pi_multiple() as pi");
+    t.addIndicator("q10", "btc_power_law_price(10) ");
+    t.addIndicator("q50", "btc_power_law_price(50)");
+    t.addIndicator("q75", "btc_power_law_price(75)");
+    t.addIndicator("q95", "btc_power_law_price(95)");
+    t.addIndicator("pi", "btc_pi_multiple()");
     Chart.newChart()
         .trace(
             "btc",
             trace -> {
-              trace.addData(t, "close");
+              trace.addData("close", t);
 
               trace.yAxis(
                   y -> {
@@ -273,27 +265,27 @@ public class BtcPowerLawModelTest extends IndicatorTest {
         .trace(
             "q50",
             trace -> {
-              trace.addData(t, "q50");
+              trace.addData("q50", t);
             })
         .trace(
             "q75",
             trace -> {
-              trace.addData(t, "q75");
+              trace.addData("q75", t);
             })
         .trace(
             "q95",
             trace -> {
-              trace.addData(t, "q95");
+              trace.addData("q95", t);
             })
         .trace(
             "q10",
             trace -> {
-              trace.addData(t, "q10");
+              trace.addData("q10", t);
             })
         .trace(
             "pi",
             trace -> {
-              trace.addData(t, "pi");
+              trace.addData("pi", t);
               trace.newYAxis(
                   y -> {
                     y.linearScale();

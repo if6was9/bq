@@ -1,5 +1,7 @@
 package bq.chart;
 
+import bq.PriceTable;
+import bx.util.DateNumberPoint;
 import bx.util.Json;
 import bx.util.Zones;
 import com.google.common.base.Preconditions;
@@ -146,14 +148,13 @@ public class ChartTrace {
     return this;
   }
 
-  /*
-  public ChartTrace addData(BarSeriesTable t, String column) {
+  public ChartTrace addData(String column, PriceTable t) {
     ArrayNode d = Json.createArrayNode();
     ArrayNode p = Json.createArrayNode();
 
     BarSeries bs = t.getBarSeries();
 
-    Indicator<?> indicator = t.getIndicator(column);
+    Indicator<?> indicator = t.getColumnIndicator(column);
 
     for (int i = bs.getBeginIndex(); i < bs.getEndIndex(); i++) {
       Bar b = bs.getBar(i);
@@ -165,7 +166,7 @@ public class ChartTrace {
       }
     }
     return addData(d, p);
-  }*/
+  }
 
   public ChartTrace addData(ArrayNode x, ArrayNode y) {
     xAxisData(x);
@@ -175,25 +176,21 @@ public class ChartTrace {
     return this;
   }
 
-  // public ChartTrace addDateSeries(DuckDb db, Consumer<StatementBuilder> b) {
-  //   return addData(db.template().query(b, Mappers.dateNumberPointMapper()).toList());
-  // }
+  public ChartTrace addData(Iterable<DateNumberPoint> pairs) {
+    Preconditions.checkNotNull(pairs != null, "pairs");
+    ArrayNode d = Json.createArrayNode();
+    ArrayNode p = Json.createArrayNode();
 
-  // public ChartTrace addData(Iterable<bq.util.DateNumberPoint> pairs) {
-  //   Preconditions.checkNotNull(pairs != null, "pairs");
-  //   ArrayNode d = Json.createArrayNode();
-  //   ArrayNode p = Json.createArrayNode();
+    pairs.forEach(
+        it -> {
+          if (it.getDate() != null && it.getDouble().isPresent()) {
+            d.add(it.getDate().toString());
+            p.add(it.getDouble().get());
+          }
+        });
 
-  //   pairs.forEach(
-  //       it -> {
-  //         if (it.getDate() != null && it.getDouble().isPresent()) {
-  //           d.add(it.getDate().toString());
-  //           p.add(it.getDouble().get());
-  //         }
-  //       });
-
-  //   return addData(d, p);
-  // }
+    return addData(d, p);
+  }
 
   public ChartTrace addData(Indicator<Num> indicator) {
     ArrayNode d = Json.createArrayNode();

@@ -1,20 +1,17 @@
 package bq.indicator.btc;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.concurrent.TimeUnit;
-
-import org.ta4j.core.Bar;
-import org.ta4j.core.BarSeries;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Stopwatch;
-
 import bq.BqException;
 import bq.indicator.btc.BtcPowerLawModel.QuantileModel;
 import bx.util.Slogger;
 import bx.util.Zones;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.concurrent.TimeUnit;
+import org.ta4j.core.Bar;
+import org.ta4j.core.BarSeries;
 
 public class BtcPowerLawCalculator {
 

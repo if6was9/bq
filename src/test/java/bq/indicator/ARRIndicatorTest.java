@@ -1,18 +1,17 @@
 package bq.indicator;
 
+import bq.PriceTable;
+import bq.chart.Chart;
+import bx.sql.duckdb.DuckTable;
+import bx.util.Slogger;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
-
-import bq.chart.Chart;
-import bq.ducktape.BarSeriesTable;
-import bx.util.Slogger;
 
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class ARRIndicatorTest extends IndicatorTest {
@@ -49,23 +48,23 @@ public class ARRIndicatorTest extends IndicatorTest {
 
   @Test
   public void applyIndicator() {
-    BarSeriesTable t = loadBtcTable();
+    DuckTable dt = getTestData().loadBtcPriceData("btc");
 
-    tape.getDb().template().execute("delete from btc where date<'2016-01-01'");
+    dt.sql("delete from btc where date<'2016-01-01'").update();
 
-    BarSeriesTable t2 = tape.getTable("btc");
+    PriceTable bst = PriceTable.from(dt);
 
-    ARRIndicator indicator = new ARRIndicator(t.getBarSeries(), 4);
+    ARRIndicator indicator = new ARRIndicator(bst.getBarSeries(), 4);
 
-    t2.addIndicator(indicator, "arr");
+    bst.addIndicator("arr", indicator);
 
-    t2.addIndicator("sma(arr,100)", "sma");
+    bst.addIndicator("sma", "sma(arr,100)");
 
     Chart.newChart()
         .trace(
             "btc",
             trace -> {
-              trace.addData(t2, "sma");
+              trace.addData("sma", bst);
             })
         .title("BTC Annualized Rate of Return (ARR)")
         .view();

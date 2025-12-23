@@ -1,29 +1,28 @@
 package bq.indicator;
 
+import bq.PriceTable;
+import bx.util.Zones;
 import java.time.LocalDate;
 import java.util.Optional;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 
-
-import bx.util.Zones;
-
 public class TrendlineIndicatorTest extends IndicatorTest {
 
   Optional<Bar> findBar(BarSeries bs, LocalDate dt) {
-    return bq.ta4j.Bars.toStream(bs).filter(b -> !b.getBeginTime().atZone(Zones.UTC).toLocalDate().isBefore(dt)).findFirst();
+    return bq.ta4j.Bars.toStream(bs)
+        .filter(b -> !b.getBeginTime().atZone(Zones.UTC).toLocalDate().isBefore(dt))
+        .findFirst();
   }
 
   @Test
   public void testIt() {
 
-    BarSeriesTable wgmi = loadWGMI();
+    PriceTable wgmi = getTestData().loadWGMIPriceTable("wgmi");
 
-    wgmi.getDb().template().execute("delete from wgmi where date<'2022-06-10'");
-    wgmi.reload();
+    wgmi.getDuckTable().sql("delete from wgmi where date<'2022-06-10'").update();
 
     String t0 = "2022-12-29"; // point 0 on lower channel band
     String t1 = "2024-09-06"; // point 1 on lower channel band
@@ -47,36 +46,36 @@ public class TrendlineIndicatorTest extends IndicatorTest {
       Assertions.assertThat(middle.getValue(i)).isEqualTo(q50.getValue(i));
     }
 
-    wgmi.addIndicator(lower, "lower");
-    wgmi.addIndicator(middle, "middle");
-    wgmi.addIndicator(upper, "upper");
+    wgmi.addIndicator("lower", lower);
+    wgmi.addIndicator("middle", middle);
+    wgmi.addIndicator("upper", upper);
     wgmi.addIndicator(
-        new ChannelIndicator(wgmi.getBarSeries(), "quantile", t0, t1, t2), "quantile");
+        "quantile", new ChannelIndicator(wgmi.getBarSeries(), "quantile", t0, t1, t2));
 
     bq.chart.Chart.newChart()
         .trace(
             "wgmi",
             trace -> {
-              trace.addData(wgmi, "close");
+              trace.addData("close", wgmi);
               trace.lineColor("blue");
               trace.lineWidth(.5);
             })
         .trace(
             "lower",
             trace -> {
-              trace.addData(wgmi, "lower");
+              trace.addData("lower", wgmi);
               trace.lineColor("green");
             })
         .trace(
             "upper",
             trace -> {
-              trace.addData(wgmi, "upper");
+              trace.addData("upper", wgmi);
               trace.lineColor("red");
             })
         .trace(
             "middle",
             trace -> {
-              trace.addData(wgmi, "middle");
+              trace.addData("middle", wgmi);
               trace.lineColor("gray");
             })
         .trace(
@@ -87,7 +86,7 @@ public class TrendlineIndicatorTest extends IndicatorTest {
                     y.overlaying("y");
                     y.side("right");
                   });
-              trace.addData(wgmi, "quantile");
+              trace.addData("quantile", wgmi);
               trace.lineStyle("dotted");
               trace.lineColor("gray");
               trace.lineWidth(.5);

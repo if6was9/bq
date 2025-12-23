@@ -28,6 +28,27 @@ public class TestData {
     return JdbcClient.create(getDataSource());
   }
 
+  public PriceTable loadBtcPriceTable(String table) {
+    return PriceTable.from(loadBtcPriceData(table));
+  }
+
+  public PriceTable loadWGMIPriceTable(String table) {
+    File csv = new File("./src/test/resources/WGMI.csv");
+
+    DuckTable t = new DataManager().dataSource(getDataSource()).createOHLCV(table, true);
+    String sql =
+        String.format(
+            "insert into %s (date, open, high,low,close,volume) (select"
+                + " date,open,high,low,close,volume from '%s' order by date)",
+            table, csv.toString());
+
+    int count = getJdbcClient().sql(sql).update();
+
+    logger.atDebug().log("inserted {} rows", count);
+
+    return PriceTable.from(t);
+  }
+
   public DuckTable loadBtcPriceData(String table) {
 
     DuckTable t = new DataManager().dataSource(getDataSource()).createOHLCV(table, true);

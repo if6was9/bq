@@ -56,6 +56,10 @@ public class PriceTable {
     return this.table;
   }
 
+  public BarSeries getBarSeries() {
+    return loadBarSeries();
+  }
+
   public BarSeries loadBarSeries() {
 
     String sql =
@@ -68,19 +72,8 @@ public class PriceTable {
 
   IndicatorBuilder indicatorBuilder = new IndicatorBuilder();
 
-  public void addIndicator(String col, String expression) {
-    addIndicator(
-        col,
-        bs -> {
-          return indicatorBuilder.create(expression, bs);
-        });
-  }
-
-  public void addIndicator(String col, Function<BarSeries, Indicator> fn) {
-    BarSeries bs = loadBarSeries();
-    Indicator<Num> ind = fn.apply(bs);
-
-    BarSeriesIterator t = Bars.toIterator(bs);
+  public void addIndicator(String col, Indicator<Num> ind) {
+    BarSeriesIterator t = Bars.toIterator(ind.getBarSeries());
 
     table.addColumn(col + " double");
     while (t.hasNext()) {
@@ -94,5 +87,25 @@ public class PriceTable {
         table.update(b.getId(), col, val);
       }
     }
+  }
+
+  public void addIndicator(String col, String expression) {
+    addIndicator(
+        col,
+        bs -> {
+          return indicatorBuilder.create(expression, bs);
+        });
+  }
+
+  public Indicator<Num> getColumnIndicator(String col) {
+
+    return null;
+  }
+
+  public void addIndicator(String col, Function<BarSeries, Indicator> fn) {
+    BarSeries bs = loadBarSeries();
+    Indicator<Num> ind = fn.apply(bs);
+
+    addIndicator(col, ind);
   }
 }

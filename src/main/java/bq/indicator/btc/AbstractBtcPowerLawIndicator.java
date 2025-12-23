@@ -1,14 +1,10 @@
 package bq.indicator.btc;
 
+import bx.util.Zones;
 import java.time.LocalDate;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.AbstractIndicator;
-import org.ta4j.core.indicators.helpers.ConstantIndicator;
-import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
-
-import bx.util.Zones;
 
 abstract class AbstractBtcPowerLawIndicator extends AbstractIndicator<Num> {
 
@@ -35,7 +31,6 @@ abstract class AbstractBtcPowerLawIndicator extends AbstractIndicator<Num> {
   @Override
   public int getCountOfUnstableBars() {
 
-	return 0;
- 
+    return 0;
   }
 }

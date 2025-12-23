@@ -1,16 +1,13 @@
 package bq.indicator.btc;
 
+import bx.util.Slogger;
+import com.google.common.collect.Lists;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-
 import org.slf4j.Logger;
-
-import com.google.common.collect.Lists;
-
-import bx.util.Slogger;
 
 public class BtcUtil {
   static Logger logger = Slogger.forEnclosingClass();

@@ -1,33 +1,24 @@
 package bq.indicator.btc;
 
-import java.time.Duration;
+import bq.PriceTable;
+import bq.chart.Chart;
+import bq.indicator.IndicatorTest;
+import bq.ta4j.Bars;
+import bq.ta4j.IndexedBar;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeriesBuilder;
-import org.ta4j.core.num.DoubleNum;
-
-import bq.chart.Chart;
-import bq.ducktape.BarSeriesTable;
-import bq.indicator.IndicatorTest;
-import bq.ta4j.Bars;
-import bq.ta4j.IndexedBar;
 
 public class BtcGenesisIndicatorTest extends IndicatorTest {
 
   BarSeries singleBar(LocalDate d) {
-	  
-	Bar bar = IndexedBar.create(d, 0d,0d,0d,0d,0d,null);
-	
-	return Bars.toBarSeries(List.of(bar));
-	
-   
+
+    Bar bar = IndexedBar.create(d, 0d, 0d, 0d, 0d, 0d, null);
+
+    return Bars.toBarSeries(List.of(bar));
   }
 
   BarSeries singleBar(int y, int m, int d) {
@@ -90,30 +81,30 @@ public class BtcGenesisIndicatorTest extends IndicatorTest {
 
   @Test
   public void testX() {
-    BarSeriesTable btc = loadBtcTable();
+    PriceTable btc = getTestData().loadBtcPriceTable("btc");
 
-    btc.addIndicator(new BtcDaysSinceGenesisIndicator(btc.getBarSeries()), "genesis");
+    btc.addIndicator("genesis", new BtcDaysSinceGenesisIndicator(btc.getBarSeries()));
 
     Chart.newChart()
         .trace(
             "btc",
             trace -> {
-              trace.addData(btc, "genesis");
+              //  trace.addData(btc, "genesis"); // TODO fix me
             })
         .view();
   }
 
   @Test
   public void testY() {
-    BarSeriesTable btc = loadBtcTable();
+    PriceTable btc = getTestData().loadBtcPriceTable("btc");
 
-    btc.addIndicator(new BtcPowerLawPriceIndicator(btc.getBarSeries()), "genesis");
+    btc.addIndicator("genesis", new BtcPowerLawPriceIndicator(btc.getBarSeries()));
 
     Chart.newChart()
         .trace(
             "btc",
             trace -> {
-              trace.addData(btc, "genesis");
+              trace.addData("genesis", btc);
               trace.yAxis(
                   y -> {
                     y.logScale();

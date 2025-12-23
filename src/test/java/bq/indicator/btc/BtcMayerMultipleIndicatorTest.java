@@ -1,30 +1,28 @@
 package bq.indicator.btc;
 
-import org.junit.jupiter.api.Test;
-
-
+import bq.PriceTable;
+import bq.chart.Chart;
 import bq.indicator.IndicatorTest;
+import org.junit.jupiter.api.Test;
 
 public class BtcMayerMultipleIndicatorTest extends IndicatorTest {
 
   @Test
   public void testIt() {
 
-    BarSeriesTable t = loadBtcTable();
+    PriceTable t = getTestData().loadBtcPriceTable("btc");
 
-    t.getDb().template().execute("delete from btc where date <'2014-12-01'");
+    t.getDuckTable().sql("delete from btc where date <'2014-12-01'").update();
 
-    t.reload();
-
-    t.addIndicator("btc_mayer_multiple() as mm");
-    t.addIndicator("sma(350) as sma");
+    t.addIndicator("mm", "btc_mayer_multiple()");
+    t.addIndicator("sma", "sma(350)");
 
     Chart.newChart()
         .trace(
             "price",
             t2 -> {
               t2.lineWidth(.5);
-              t2.addData(t, "close");
+              t2.addData("close", t);
               t2.yAxis(
                   y -> {
                     y.logScale();
@@ -34,7 +32,7 @@ public class BtcMayerMultipleIndicatorTest extends IndicatorTest {
             "sma",
             t2 -> {
               t2.lineWidth(.5);
-              t2.addData(t, "sma");
+              t2.addData("sma", t);
             })
         .view();
 
