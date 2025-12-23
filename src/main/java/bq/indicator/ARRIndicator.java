@@ -73,8 +73,9 @@ public class ARRIndicator extends AbstractIndicator<Num> {
   public Num getValue(int index) {
 
     Bar b1 = getBarSeries().getBar(index);
-    ZonedDateTime t1 = b1.getBeginTime();
+    ZonedDateTime t1 = b1.getBeginTime().atZone(Zones.UTC);
 
+  
     ZonedDateTime t0 = t1.minusDays((int) (years * 365));
 
     Optional<Bar> b0 = findFirstBarOnOrBefore(t0);
@@ -87,17 +88,14 @@ public class ARRIndicator extends AbstractIndicator<Num> {
     return DoubleNum.valueOf(arr);
   }
 
-  @Override
-  public int getUnstableBars() {
-    return 0;
-  }
+ 
 
   public double calculateARR(Bar b0, Bar b1) {
 
     return calculateARR(
-        b0.getBeginTime(),
+        b0.getBeginTime().atZone(Zones.UTC),
         b0.getClosePrice().doubleValue(),
-        b1.getBeginTime(),
+        b1.getBeginTime().atZone(Zones.UTC),
         b1.getClosePrice().doubleValue());
   }
 
@@ -121,5 +119,10 @@ public class ARRIndicator extends AbstractIndicator<Num> {
     }
 
     return new BigDecimal(arr).setScale(2, RoundingMode.HALF_UP).doubleValue();
+  }
+
+  @Override
+  public int getCountOfUnstableBars() {
+	return 0;
   }
 }

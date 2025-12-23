@@ -1,21 +1,20 @@
 package bq.indicator.btc;
 
-import bq.indicator.btc.BtcPowerLawModel.QuantileModel;
-import bq.util.BqException;
-import bx.util.Slogger;
-import bx.util.Zones;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Stopwatch;
-import com.google.common.flogger.FluentLogger;
-
-import java.lang.System.Logger;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
+
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
+
+import bq.BqException;
+import bq.indicator.btc.BtcPowerLawModel.QuantileModel;
+import bx.util.Slogger;
+import bx.util.Zones;
 
 public class BtcPowerLawCalculator {
 
@@ -54,7 +53,7 @@ public class BtcPowerLawCalculator {
     int belowModelCount = 0;
     for (Bar b : data.getBarData()) {
 
-      LocalDate d = b.getBeginTime().toLocalDate();
+      LocalDate d = b.getBeginTime().atZone(Zones.UTC).toLocalDate();
 
       double modelValue = calculatePrice(BtcUtil.getDaysSinceGenesis(d), a, c);
 
@@ -111,7 +110,7 @@ public class BtcPowerLawCalculator {
   private static void calibrateQuantile(
       BarSeries data, double a, QuantileModel model, double step) {
 
-    logger.atFiner().log("calibrate a=%s step=%s", a, step);
+    logger.atDebug().log("calibrate a=%s step=%s", a, step);
 
     Preconditions.checkArgument(model.quantiles.size() == 100);
     Preconditions.checkArgument(a >= 2 && a < 10, "a must be in range [2,10] was %s", a);
@@ -201,7 +200,7 @@ public class BtcPowerLawCalculator {
         sw.elapsed(TimeUnit.MILLISECONDS),
         data.getBarCount(),
         data.getFirstBar().getBeginTime().atZone(Zones.UTC).toLocalDate(),
-        data.getLastBar().getBeginTime().atZone(Zones.UTC).toLocalDate()
+        data.getLastBar().getBeginTime().atZone(Zones.UTC).toLocalDate());
     return m;
   }
 }

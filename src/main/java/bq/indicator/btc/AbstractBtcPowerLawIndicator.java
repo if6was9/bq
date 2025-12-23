@@ -2,8 +2,13 @@ package bq.indicator.btc;
 
 import java.time.LocalDate;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.AbstractIndicator;
+import org.ta4j.core.indicators.helpers.ConstantIndicator;
+import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
+
+import bx.util.Zones;
 
 abstract class AbstractBtcPowerLawIndicator extends AbstractIndicator<Num> {
 
@@ -24,11 +29,13 @@ abstract class AbstractBtcPowerLawIndicator extends AbstractIndicator<Num> {
   }
 
   public LocalDate getDate(int i) {
-    return getBarSeries().getBar(i).getBeginTime().toLocalDate();
+    return getBarSeries().getBar(i).getBeginTime().atZone(Zones.UTC).toLocalDate();
   }
 
   @Override
-  public int getUnstableBars() {
-    return 0;
+  public int getCountOfUnstableBars() {
+
+	return 0;
+ 
   }
 }

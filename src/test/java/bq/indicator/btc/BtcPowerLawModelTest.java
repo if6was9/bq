@@ -2,24 +2,25 @@ package bq.indicator.btc;
 
 import static org.assertj.core.api.Assertions.byLessThan;
 
-import bq.ducktape.BarSeriesTable;
-import bq.ducktape.DuckTape;
-import bq.ducktape.chart.Chart;
-import bq.indicator.IndicatorTest;
-import bq.indicator.btc.BtcPowerLawModel.QuantileModel;
-import bx.util.Slogger;
-
-import com.google.common.flogger.FluentLogger;
-import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
+
+import com.google.common.io.Files;
+
+import bq.chart.Chart;
+import bq.ducktape.BarSeriesTable;
+import bq.ducktape.DuckTape;
+import bq.indicator.IndicatorTest;
+import bq.indicator.btc.BtcPowerLawModel.QuantileModel;
+import bx.util.Slogger;
 
 public class BtcPowerLawModelTest extends IndicatorTest {
 

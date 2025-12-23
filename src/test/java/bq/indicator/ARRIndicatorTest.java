@@ -1,18 +1,18 @@
 package bq.indicator;
 
-import bq.ducktape.BarSeriesTable;
-import bq.ducktape.chart.Chart;
-import bx.util.Slogger;
-
-import com.google.common.flogger.FluentLogger;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+
 import org.assertj.core.api.Assertions;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
+
+import bq.chart.Chart;
+import bq.ducktape.BarSeriesTable;
+import bx.util.Slogger;
 
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class ARRIndicatorTest extends IndicatorTest {

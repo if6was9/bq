@@ -6,6 +6,8 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
 
+import bx.util.Zones;
+
 public class BtcEpochIndicator extends AbstractBtcEpochIndicator {
 
   public BtcEpochIndicator(BarSeries series) {
@@ -18,7 +20,7 @@ public class BtcEpochIndicator extends AbstractBtcEpochIndicator {
     if (bar == null) {
       return null;
     }
-    LocalDate d = bar.getBeginTime().toLocalDate();
+    LocalDate d = bar.getBeginTime().atZone(Zones.UTC).toLocalDate();
 
     long epoch = BtcUtil.getEpoch(d);
     return DoubleNum.valueOf(epoch);

@@ -1,12 +1,10 @@
 package bq.indicator.btc;
 
-import bq.ducktape.BarSeriesTable;
-import bq.ducktape.chart.Chart;
-import bq.indicator.IndicatorTest;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.Bar;
@@ -15,20 +13,21 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeriesBuilder;
 import org.ta4j.core.num.DoubleNum;
 
+import bq.chart.Chart;
+import bq.ducktape.BarSeriesTable;
+import bq.indicator.IndicatorTest;
+import bq.ta4j.Bars;
+import bq.ta4j.IndexedBar;
+
 public class BtcGenesisIndicatorTest extends IndicatorTest {
 
   BarSeries singleBar(LocalDate d) {
-    BaseBarSeriesBuilder.setDefaultNum(DoubleNum.ZERO);
-
-    Bar b =
-        BaseBar.builder(DoubleNum.ZERO, double.class)
-            .endTime(d.plusDays(1).atStartOfDay(ZoneId.of("UTC")))
-            .timePeriod(Duration.ofDays(1))
-            .build();
-
-    BarSeries bs = new BaseBarSeriesBuilder().withBars(List.of(b)).build();
-
-    return bs;
+	  
+	Bar bar = IndexedBar.create(d, 0d,0d,0d,0d,0d,null);
+	
+	return Bars.toBarSeries(List.of(bar));
+	
+   
   }
 
   BarSeries singleBar(int y, int m, int d) {

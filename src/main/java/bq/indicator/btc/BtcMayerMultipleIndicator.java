@@ -39,7 +39,7 @@ public class BtcMayerMultipleIndicator extends AbstractIndicator<Num> {
   }
 
   @Override
-  public int getUnstableBars() {
+  public int getCountOfUnstableBars() {
 
     return 0;
   }

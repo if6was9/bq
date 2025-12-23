@@ -6,6 +6,8 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
 
+import bx.util.Zones;
+
 public class BtcDayOfEpochIndicator extends AbstractBtcEpochIndicator {
 
   public BtcDayOfEpochIndicator(BarSeries series) {
@@ -18,9 +20,14 @@ public class BtcDayOfEpochIndicator extends AbstractBtcEpochIndicator {
     if (bar == null) {
       return null;
     }
-    LocalDate d = bar.getBeginTime().toLocalDate();
+    LocalDate d = bar.getBeginTime().atZone(Zones.UTC).toLocalDate();
 
     long count = BtcUtil.getDayOfEpoch(d);
     return DoubleNum.valueOf(count);
+  }
+
+  @Override
+  public int getCountOfUnstableBars() {
+	return 0;
   }
 }

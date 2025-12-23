@@ -3,6 +3,9 @@ package bq.indicator;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+
+import bx.util.Zones;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -82,7 +85,7 @@ public class LinearTrendModel {
     }
 
     return stream(this.barSeries)
-        .filter(b -> !b.getBeginTime().isBefore(d.atStartOfDay(UTC)))
+        .filter(b -> !b.getBeginTime().atZone(Zones.UTC).isBefore(d.atStartOfDay(UTC)))
         .findFirst();
   }
 
@@ -227,9 +230,9 @@ public class LinearTrendModel {
 
   private LinearTrendModel init(Bar b0, Bar b1) {
     return init(
-        b0.getBeginTime().toLocalDate(),
+        b0.getBeginTime().atZone(Zones.UTC).toLocalDate(),
         getBarPrice(b0),
-        b1.getBeginTime().toLocalDate(),
+        b1.getBeginTime().atZone(UTC).toLocalDate(),
         getBarPrice(b1));
   }
 
@@ -245,7 +248,7 @@ public class LinearTrendModel {
   }
 
   public LinearTrendModel channel(Bar b) {
-    return channel(b.getBeginTime().toLocalDate(), b.getClosePrice().doubleValue());
+    return channel(b.getBeginTime().atZone(Zones.UTC).toLocalDate(), b.getClosePrice().doubleValue());
   }
 
   public LinearTrendModel channel(LocalDate d, double p) {

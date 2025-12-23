@@ -1,6 +1,9 @@
 package bq.indicator;
 
 import com.google.common.base.Preconditions;
+
+import bx.util.Zones;
+
 import java.time.ZonedDateTime;
 import java.util.function.Function;
 import org.ta4j.core.Bar;
@@ -30,11 +33,11 @@ public abstract class DateFunctionIndicator extends AbstractIndicator<Num> {
   @Override
   public Num getValue(int index) {
     Bar b = getBarSeries().getBar(index);
-    return function.apply(b.getBeginTime());
+    return function.apply(b.getBeginTime().atZone(Zones.UTC));
   }
 
   @Override
-  public int getUnstableBars() {
+  public int getCountOfUnstableBars() {
     return 0;
   }
 }

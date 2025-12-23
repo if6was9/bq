@@ -1,19 +1,22 @@
 package bq.indicator;
 
-import bq.duckdb.DuckDb;
-import bq.ducktape.BarSeriesTable;
-import bq.ducktape.DuckTape;
-import bq.ducktape.chart.Chart;
-import com.google.common.flogger.FluentLogger;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
+import org.slf4j.Logger;
+
+import bq.chart.Chart;
+import bq.duckdb.DuckDb;
+import bq.ducktape.BarSeriesTable;
+import bq.ducktape.DuckTape;
+import bx.util.Slogger;
 
 public abstract class IndicatorTest {
 
-  static FluentLogger logger = FluentLogger.forEnclosingClass();
+  static Logger logger = Slogger.forEnclosingClass();
   DuckTape tape;
 
   BarSeriesTable btcTable;

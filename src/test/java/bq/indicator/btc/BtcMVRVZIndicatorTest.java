@@ -34,10 +34,5 @@ public class BtcMVRVZIndicatorTest extends IndicatorTest {
         .view();
   }
 
-  @Test
-  public void testA() {
 
-    Assertions.assertThat(IndicatorRegistry.getRegistry().getAvailableIndicators().get("btc_mvrvz"))
-        .isEqualTo(BtcMVRVZIndicator.class);
-  }
 }

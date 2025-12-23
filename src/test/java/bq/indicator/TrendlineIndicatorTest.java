@@ -8,12 +8,13 @@ import org.junit.jupiter.api.Test;
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 
-import bq.ducktape.BarSeriesTable;
+
+import bx.util.Zones;
 
 public class TrendlineIndicatorTest extends IndicatorTest {
 
   Optional<Bar> findBar(BarSeries bs, LocalDate dt) {
-    return bq.ta4j.Bars.toStream(bs).filter(b -> !b.getBeginTime().toLocalDate().isBefore(dt)).findFirst();
+    return bq.ta4j.Bars.toStream(bs).filter(b -> !b.getBeginTime().atZone(Zones.UTC).toLocalDate().isBefore(dt)).findFirst();
   }
 
   @Test
