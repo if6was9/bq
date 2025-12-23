@@ -37,6 +37,10 @@ public class MassiveProvider extends CachingDataProvider {
     throw new IllegalStateException("Massive API Key Not Set (env: MASSIVE_API_KEY)");
   }
 
+  public LocalDate getDefaultNotBefore() {
+    return LocalDate.now(Zones.UTC).minusYears(2);
+  }
+
   @Override
   protected Stream<OHLCV> fetch(Request request) {
 
@@ -44,8 +48,9 @@ public class MassiveProvider extends CachingDataProvider {
 
     String from = "";
     String to = null;
-    if (request.to == null) {
-      from = LocalDate.now().minusDays(90).toString();
+    if (request.from == null) {
+
+      from = getDefaultNotBefore().toString();
     } else {
       from = request.from.toString();
     }

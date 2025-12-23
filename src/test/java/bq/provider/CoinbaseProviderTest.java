@@ -1,11 +1,14 @@
 package bq.provider;
 
 import bq.BqTest;
+import bq.OHLCV;
 import bq.ta4j.Bars;
 import bx.util.Slogger;
 import bx.util.Zones;
 import com.google.common.base.Stopwatch;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -52,6 +55,24 @@ public class CoinbaseProviderTest extends BqTest {
   }
 
   @Test
+  void testFromToDefaults() {
+
+    CoinbaseDataProvider cb = new CoinbaseDataProvider();
+
+    var t =
+        cb.dataSource(getDataSource())
+            .newRequest("btc")
+            //   .from(LocalDate.of(2017, 12, 1))
+            //   .to(LocalDate.of(2025, 12, 7))
+            .fetchStream()
+            .toList();
+
+    System.out.println(t.getFirst());
+    System.out.println(t.getLast());
+    checkOrdering(t);
+  }
+
+  @Test
   void testFetchBarSeries() {
 
     CoinbaseDataProvider cb = new CoinbaseDataProvider();
@@ -78,6 +99,38 @@ public class CoinbaseProviderTest extends BqTest {
             .fetchIntoTable("test");
 
     t.prettyQuery().select();
+  }
+
+  void checkOrdering(List<OHLCV> bars) {
+    if (bars == null) {
+      bars = List.of();
+    }
+    Instant lastTs = null;
+    for (OHLCV bar : bars) {
+      Instant ts = bar.getTimestamp();
+
+      if (lastTs != null) {
+
+        Assertions.assertThat(ts).isAfter(lastTs);
+      }
+      lastTs = ts;
+    }
+  }
+
+  @Test
+  public void testDefaultFrom() {
+
+    getDuckDataManager().createOHLCV("test", false);
+    var t =
+        new CoinbaseDataProvider()
+            .dataSource(getDataSource())
+            .newRequest("doge")
+            .fetchStream()
+            .toList();
+
+    Assertions.assertThat(t.size()).isGreaterThan(1660);
+
+    checkOrdering(t);
   }
 
   @Test

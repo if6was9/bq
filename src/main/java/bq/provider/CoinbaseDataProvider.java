@@ -35,6 +35,10 @@ public class CoinbaseDataProvider extends CachingDataProvider {
     return LocalDate.now(Zones.UTC).minusDays(1);
   }
 
+  public LocalDate getDefaultNotBefore() {
+    return LocalDate.now(Zones.UTC).minusYears(2);
+  }
+
   public Stream<OHLCV> loadAll(String product) {
 
     List<OHLCV> data = Lists.newArrayList();
@@ -151,6 +155,9 @@ public class CoinbaseDataProvider extends CachingDataProvider {
     LocalDate notAfter = request.to;
     LocalDate notBefore = request.from;
 
+    if (notBefore == null) {
+      notBefore = getDefaultNotBefore();
+    }
     if (request.to == null) {
       notAfter = ZonedDateTime.now(Zones.UTC).toLocalDate();
     }
@@ -165,13 +172,8 @@ public class CoinbaseDataProvider extends CachingDataProvider {
     do {
 
       long requestCount = 0;
-      if (notBefore == null) {
-        requestCount = pageSize;
-      } else {
-        requestCount = notBefore.until(notAfter, ChronoUnit.DAYS);
-      }
 
-      requestCount = Math.min(pageSize, Math.abs(requestCount));
+      requestCount = Math.min(pageSize, Math.abs(notBefore.until(notAfter, ChronoUnit.DAYS)));
 
       JsonNode n = loadJson(toCoinbaseSymbol(request.symbol), ref, requestCount * -1);
       logger.atTrace().log("from={} count={}", ref, requestCount * -1);
@@ -184,11 +186,13 @@ public class CoinbaseDataProvider extends CachingDataProvider {
           ref = it.getDate();
         }
 
-        results.add(it);
+        if (!(it.getDate().isBefore(notBefore) || it.getDate().isAfter(notAfter))) {
+          results.add(it);
+        }
       }
 
       ref = ref.minus(1, ChronoUnit.DAYS);
-      logger.atTrace().log("response size " + responseSize);
+
     } while (responseSize > 0 && (notBefore == null || ref.isAfter(notBefore)));
     return results.reversed().stream();
   }

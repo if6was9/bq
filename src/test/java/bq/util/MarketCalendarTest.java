@@ -1,12 +1,13 @@
 package bq.util;
 
+import bq.BqTest;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class MarketCalendarTest {
+public class MarketCalendarTest extends BqTest {
 
   @Test
   public void timeToUpdateCalendar() {

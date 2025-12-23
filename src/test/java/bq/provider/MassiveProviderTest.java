@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 
 public class MassiveProviderTest extends BqTest {
 
-  Logger logger = Slogger.forEnclosingClass();
+  static Logger logger = Slogger.forEnclosingClass();
 
   @Test
   public void testIt() {
@@ -23,6 +23,20 @@ public class MassiveProviderTest extends BqTest {
     t.prettyQuery().select();
 
     t.prettyQuery().select(c -> c.sql("select * from " + t.getTableName()));
+  }
+
+  @Test
+  public void testRange2() {
+
+    MassiveProvider p = new MassiveProvider().dataSource(getDataSource());
+
+    LocalDate from = null;
+    LocalDate to = LocalDate.of(2025, 12, 10);
+    var list = p.newRequest("ABNB").from(from).to(to).fetchStream().toList();
+
+    System.out.println(list.getFirst());
+
+    System.out.println(list.getLast());
   }
 
   @Test

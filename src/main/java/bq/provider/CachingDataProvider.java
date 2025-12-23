@@ -17,7 +17,7 @@ public abstract class CachingDataProvider extends DataProvider {
   File cacheDir =
       new File(new File(System.getProperty("java.io.tmpdir"), "bq"), getClass().getName());
 
-  static AtomicLong invalidBefore = new AtomicLong(System.currentTimeMillis());
+  static AtomicLong invalidBefore = new AtomicLong(0);
 
   public CachingDataProvider() {
     super();

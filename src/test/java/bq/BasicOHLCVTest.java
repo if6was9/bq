@@ -57,4 +57,10 @@ public class BasicOHLCVTest extends BqTest {
 
     Assertions.assertThat(list).containsExactlyElementsOf(sorted);
   }
+
+  @Test
+  public void testLeap() {
+    Assertions.assertThat(LocalDate.of(2020, 2, 29).minusYears(1))
+        .isEqualTo(LocalDate.of(2019, 2, 28));
+  }
 }
