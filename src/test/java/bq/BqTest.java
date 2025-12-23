@@ -1,19 +1,16 @@
 package bq;
 
+import bq.chart.Chart;
 import bx.sql.PrettyQuery;
 import bx.sql.duckdb.DuckDataSource;
 import bx.sql.duckdb.DuckTable;
 import bx.util.S;
 import bx.util.Slogger;
 import com.google.common.base.Preconditions;
-
-import bq.chart.Chart;
-
 import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.sql.DataSource;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.AfterEach;
@@ -30,7 +27,7 @@ public abstract class BqTest {
   DataManager ddm;
 
   static AtomicInteger testCount = new AtomicInteger();
-  
+
   public DataManager getDuckDataManager() {
     return ddm;
   }
@@ -164,13 +161,13 @@ public abstract class BqTest {
   }
 
   @BeforeEach
-   void disableDesktop() {
-  
+  void disableDesktop() {
+
     if (testCount.getAndIncrement() > 1) {
       Chart.disableBrowser();
     }
   }
-  
+
   @AfterEach
   public void tearDown() {
     logger.atTrace().log("closing: " + dataSource);

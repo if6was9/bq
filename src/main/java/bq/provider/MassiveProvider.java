@@ -62,30 +62,29 @@ public class MassiveProvider extends CachingDataProvider {
 
     logger.atInfo().log("GET {}", url);
 
-    JsonNode body=null;
+    JsonNode body = null;
     body = getCachedJson(url).orElse(null);
-    
-   
-    if (body==null) {
-    kong.unirest.core.HttpResponse<tools.jackson.databind.JsonNode> response =
-        Unirest.get(url)
-            .headerReplace("Accept", "application/json")
-            .headerReplace("Authorization", String.format("Bearer %s", getApiKey()))
-            .asObject(tools.jackson.databind.JsonNode.class);
 
-    int rc = response.getStatus();
-    if (!response.isSuccess()) {
-      JsonNode n = response.getBody();
-      if (n == null) {
-        n = MissingNode.getInstance();
+    if (body == null) {
+      kong.unirest.core.HttpResponse<tools.jackson.databind.JsonNode> response =
+          Unirest.get(url)
+              .headerReplace("Accept", "application/json")
+              .headerReplace("Authorization", String.format("Bearer %s", getApiKey()))
+              .asObject(tools.jackson.databind.JsonNode.class);
+
+      int rc = response.getStatus();
+      if (!response.isSuccess()) {
+        JsonNode n = response.getBody();
+        if (n == null) {
+          n = MissingNode.getInstance();
+        }
+
+        String msg = String.format("rc=%s msg=%s", rc, n.path("error").asString(""));
+        throw new BxException(msg);
       }
 
-      String msg = String.format("rc=%s msg=%s", rc, n.path("error").asString(""));
-      throw new BxException(msg);
-    }
-
-     body = response.getBody();
-     putCache(url, body);
+      body = response.getBody();
+      putCache(url, body);
     }
 
     // timestamps from massive for daily aggregates use 00:00 NYC as the start period

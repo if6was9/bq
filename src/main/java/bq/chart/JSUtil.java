@@ -1,9 +1,8 @@
 package bq.chart;
 
+import bq.BqException;
 import java.io.IOException;
 import java.io.StringWriter;
-
-import bq.BqException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
@@ -92,8 +91,7 @@ public class JSUtil {
       StringBuffer sb = new StringBuffer();
       ObjectNode on = (ObjectNode) n;
       sb.append("{");
-      
-      
+
       on.propertyNames()
           .forEach(
               field -> {

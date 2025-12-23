@@ -1,10 +1,8 @@
 package bq.chart;
 
+import bx.util.Json;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import bq.chart.JSUtil;
-import bx.util.Json;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 

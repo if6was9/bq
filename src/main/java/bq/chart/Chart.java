@@ -1,5 +1,11 @@
 package bq.chart;
 
+import bq.BqException;
+import bx.util.Json;
+import bx.util.RuntimeEnvironment;
+import bx.util.Slogger;
+import com.google.common.io.Closer;
+import com.google.common.io.Files;
 import java.awt.Desktop;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
@@ -12,16 +18,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-
 import org.slf4j.Logger;
-
-import com.google.common.io.Closer;
-import com.google.common.io.Files;
-
-import bq.BqException;
-import bx.util.Json;
-import bx.util.RuntimeEnvironment;
-import bx.util.Slogger;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;

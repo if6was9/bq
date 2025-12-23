@@ -25,186 +25,195 @@ import tools.jackson.databind.JsonNode;
 
 public class CoinbaseDataProvider extends CachingDataProvider {
 
-	static Logger logger = Slogger.forEnclosingClass();
-	RateLimiter limit = RateLimiter.create(1.5);
+  static Logger logger = Slogger.forEnclosingClass();
+  RateLimiter limit = RateLimiter.create(1.5);
 
-	public static final int MAX_PAGE_SIZE = 350;
-	int pageSize = MAX_PAGE_SIZE;
+  public static final int MAX_PAGE_SIZE = 350;
+  int pageSize = MAX_PAGE_SIZE;
 
-	public LocalDate getLastClosedTradingDay() {
-		return LocalDate.now(Zones.UTC).minusDays(1);
-	}
+  public LocalDate getLastClosedTradingDay() {
+    return LocalDate.now(Zones.UTC).minusDays(1);
+  }
 
-	public Stream<OHLCV> loadAll(String product) {
+  public Stream<OHLCV> loadAll(String product) {
 
-		List<OHLCV> data = Lists.newArrayList();
-		LocalDate dt = getLastClosedTradingDay();
-		int inc = -350;
-		int candleCount = 0;
-		do {
-			var json = loadJson(product, dt, inc);
+    List<OHLCV> data = Lists.newArrayList();
+    LocalDate dt = getLastClosedTradingDay();
+    int inc = -350;
+    int candleCount = 0;
+    do {
+      var json = loadJson(product, dt, inc);
 
-			json.path("candles").forEach(jc -> {
-				OHLCV val = toOHLCV(jc);
-				data.add(val);
-			});
-			candleCount = json.path("candles").size();
+      json.path("candles")
+          .forEach(
+              jc -> {
+                OHLCV val = toOHLCV(jc);
+                data.add(val);
+              });
+      candleCount = json.path("candles").size();
 
-			if (candleCount > 0) {
-				var lastCandle = json.path("candles").get(candleCount - 1);
+      if (candleCount > 0) {
+        var lastCandle = json.path("candles").get(candleCount - 1);
 
-				Instant lastTs = Instant.ofEpochSecond(lastCandle.path("start").asLong());
+        Instant lastTs = Instant.ofEpochSecond(lastCandle.path("start").asLong());
 
-				dt = lastTs.atZone(Zones.UTC).toLocalDate().minusDays(1);
-			}
+        dt = lastTs.atZone(Zones.UTC).toLocalDate().minusDays(1);
+      }
 
-		} while (candleCount > 0);
-		return data.stream();
-	}
+    } while (candleCount > 0);
+    return data.stream();
+  }
 
-	public JsonNode loadJson(String product, LocalDate start, long count) {
+  public JsonNode loadJson(String product, LocalDate start, long count) {
 
-		
-		if (start == null) {
-			start = getLastClosedTradingDay();
-		}
-		long t0 = start.atStartOfDay(Zones.UTC).toEpochSecond();
-		long t1 = start.plusDays(count).atStartOfDay(Zones.UTC).toEpochSecond();
-		if (t0 > t1) {
-			long tmp = t1;
-			t1 = t0;
-			t0 = tmp;
-		}
+    if (start == null) {
+      start = getLastClosedTradingDay();
+    }
+    long t0 = start.atStartOfDay(Zones.UTC).toEpochSecond();
+    long t1 = start.plusDays(count).atStartOfDay(Zones.UTC).toEpochSecond();
+    if (t0 > t1) {
+      long tmp = t1;
+      t1 = t0;
+      t0 = tmp;
+    }
 
-		String url = String.format(
-				"https://api.coinbase.com/api/v3/brokerage/market/products/%s/candles?granularity=ONE_DAY&start=%s&end=%s",
-				product, t0, t1);
+    String url =
+        String.format(
+            "https://api.coinbase.com/api/v3/brokerage/market/products/%s/candles?granularity=ONE_DAY&start=%s&end=%s",
+            product, t0, t1);
 
-		JsonNode body = getCachedJson(url).orElse(null);
-		if (body == null) {
-			limit.acquire();
-			logger.atInfo().log("GET {}", url);
+    JsonNode body = getCachedJson(url).orElse(null);
+    if (body == null) {
+      limit.acquire();
+      logger.atInfo().log("GET {}", url);
 
-			HttpResponse<JsonNode> response = Unirest.get(url).asObject(JsonNode.class);
-			if (!response.isSuccess()) {
+      HttpResponse<JsonNode> response = Unirest.get(url).asObject(JsonNode.class);
+      if (!response.isSuccess()) {
 
-				throw new HttpResponseException(response.getStatus());
-			}
-			body = response.getBody();
-			putCache(url, body);
-		}
+        throw new HttpResponseException(response.getStatus());
+      }
+      body = response.getBody();
+      putCache(url, body);
+    }
 
-		return body;
-	}
+    return body;
+  }
 
-	public static OHLCV toOHLCV(JsonNode n) {
+  public static OHLCV toOHLCV(JsonNode n) {
 
-		Instant ts = Instant.ofEpochSecond(n.path("start").asLong());
+    Instant ts = Instant.ofEpochSecond(n.path("start").asLong());
 
-		var candle = BasicOHLCV.ofDecimal(ts, getBigDecimal(n, "open").orElse(null),
-				getBigDecimal(n, "high").orElse(null), getBigDecimal(n, "low").orElse(null),
-				getBigDecimal(n, "close").orElse(null), getBigDecimal(n, "volume").orElse(null));
+    var candle =
+        BasicOHLCV.ofDecimal(
+            ts,
+            getBigDecimal(n, "open").orElse(null),
+            getBigDecimal(n, "high").orElse(null),
+            getBigDecimal(n, "low").orElse(null),
+            getBigDecimal(n, "close").orElse(null),
+            getBigDecimal(n, "volume").orElse(null));
 
-		return candle;
-	}
+    return candle;
+  }
 
-	static Optional<BigDecimal> getBigDecimal(JsonNode n, String pos) {
-		try {
-			BigDecimal d = n.path(pos).asDecimal();
-			return Optional.of(d);
-		} catch (Exception e) {
-			return Optional.empty();
-		}
-	}
+  static Optional<BigDecimal> getBigDecimal(JsonNode n, String pos) {
+    try {
+      BigDecimal d = n.path(pos).asDecimal();
+      return Optional.of(d);
+    } catch (Exception e) {
+      return Optional.empty();
+    }
+  }
 
-	static Optional<Double> getDouble(JsonNode n, String pos) {
+  static Optional<Double> getDouble(JsonNode n, String pos) {
 
-		try {
-			double d = n.path(pos).asDouble();
-			return Optional.of(d);
-		} catch (Exception e) {
-			return Optional.empty();
-		}
-	}
+    try {
+      double d = n.path(pos).asDouble();
+      return Optional.of(d);
+    } catch (Exception e) {
+      return Optional.empty();
+    }
+  }
 
-	@Override
-	public Stream<OHLCV> fetch(Request request) {
+  @Override
+  public Stream<OHLCV> fetch(Request request) {
 
-		logger.atTrace().log("symbol={} from={} to={}", toCoinbaseSymbol(request.symbol), request.from, request.to);
+    logger
+        .atTrace()
+        .log("symbol={} from={} to={}", toCoinbaseSymbol(request.symbol), request.from, request.to);
 
-		if (request.from != null && request.to != null) {
-			if (request.from.isAfter(request.to)) {
-				LocalDate tmp = request.to;
-				request.to = request.from;
-				request.from = tmp;
-			}
-		}
-		LocalDate notAfter = request.to;
-		LocalDate notBefore = request.from;
+    if (request.from != null && request.to != null) {
+      if (request.from.isAfter(request.to)) {
+        LocalDate tmp = request.to;
+        request.to = request.from;
+        request.from = tmp;
+      }
+    }
+    LocalDate notAfter = request.to;
+    LocalDate notBefore = request.from;
 
-		if (request.to == null) {
-			notAfter = ZonedDateTime.now(Zones.UTC).toLocalDate();
-		}
+    if (request.to == null) {
+      notAfter = ZonedDateTime.now(Zones.UTC).toLocalDate();
+    }
 
-		logger.atTrace().log("start at {}", notAfter);
+    logger.atTrace().log("start at {}", notAfter);
 
-		List<OHLCV> results = Lists.newLinkedList();
+    List<OHLCV> results = Lists.newLinkedList();
 
-		LocalDate ref = notAfter;
+    LocalDate ref = notAfter;
 
-		int responseSize = 0;
-		do {
+    int responseSize = 0;
+    do {
 
-			long requestCount = 0;
-			if (notBefore == null) {
-				requestCount = pageSize;
-			} else {
-				requestCount = notBefore.until(notAfter, ChronoUnit.DAYS);
-			}
+      long requestCount = 0;
+      if (notBefore == null) {
+        requestCount = pageSize;
+      } else {
+        requestCount = notBefore.until(notAfter, ChronoUnit.DAYS);
+      }
 
-			requestCount = Math.min(pageSize, Math.abs(requestCount));
+      requestCount = Math.min(pageSize, Math.abs(requestCount));
 
-			JsonNode n = loadJson(toCoinbaseSymbol(request.symbol), ref, requestCount * -1);
-			logger.atTrace().log("from={} count={}", ref, requestCount * -1);
-			responseSize = n.path("candles").size();
+      JsonNode n = loadJson(toCoinbaseSymbol(request.symbol), ref, requestCount * -1);
+      logger.atTrace().log("from={} count={}", ref, requestCount * -1);
+      responseSize = n.path("candles").size();
 
-			for (OHLCV it : Json.asStream(n.path("candles")).map(CoinbaseDataProvider::toOHLCV).toList()) {
+      for (OHLCV it :
+          Json.asStream(n.path("candles")).map(CoinbaseDataProvider::toOHLCV).toList()) {
 
-				if (it.getDate().isBefore(ref)) {
-					ref = it.getDate();
-				}
+        if (it.getDate().isBefore(ref)) {
+          ref = it.getDate();
+        }
 
-				results.add(it);
-			}
+        results.add(it);
+      }
 
-			ref = ref.minus(1, ChronoUnit.DAYS);
-			logger.atTrace().log("response size " + responseSize);
-		} while (responseSize > 0 && (notBefore == null || ref.isAfter(notBefore)));
-		return results.reversed().stream();
-	}
+      ref = ref.minus(1, ChronoUnit.DAYS);
+      logger.atTrace().log("response size " + responseSize);
+    } while (responseSize > 0 && (notBefore == null || ref.isAfter(notBefore)));
+    return results.reversed().stream();
+  }
 
-	public static String toCoinbaseSymbol(String symbol) {
-		Preconditions.checkArgument(S.isNotBlank(symbol), "symbol must be provided");
-		symbol = symbol.toUpperCase().trim();
+  public static String toCoinbaseSymbol(String symbol) {
+    Preconditions.checkArgument(S.isNotBlank(symbol), "symbol must be provided");
+    symbol = symbol.toUpperCase().trim();
 
-		if (symbol.startsWith("X:") || symbol.startsWith("X_")) {
-			symbol = symbol.substring(2);
-		}
-		if (symbol.endsWith("-USD")) {
-			return symbol;
-		}
-		if (symbol.endsWith("/USD")) {
-			return symbol.substring(0, symbol.length() - 4) + "-USD";
-		}
-		if (symbol.endsWith("_USD")) {
-			return symbol.substring(0, symbol.length() - 4) + "-USD";
-		}
+    if (symbol.startsWith("X:") || symbol.startsWith("X_")) {
+      symbol = symbol.substring(2);
+    }
+    if (symbol.endsWith("-USD")) {
+      return symbol;
+    }
+    if (symbol.endsWith("/USD")) {
+      return symbol.substring(0, symbol.length() - 4) + "-USD";
+    }
+    if (symbol.endsWith("_USD")) {
+      return symbol.substring(0, symbol.length() - 4) + "-USD";
+    }
 
-		if (symbol.chars().allMatch(p -> Character.isAlphabetic(p))) {
-			return symbol + "-USD";
-		}
+    if (symbol.chars().allMatch(p -> Character.isAlphabetic(p))) {
+      return symbol + "-USD";
+    }
 
-		return symbol.replace("/", "-").replace("_", "-");
-	}
-
+    return symbol.replace("/", "-").replace("_", "-");
+  }
 }

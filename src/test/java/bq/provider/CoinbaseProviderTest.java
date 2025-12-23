@@ -4,18 +4,17 @@ import bq.BqTest;
 import bq.ta4j.Bars;
 import bx.util.Slogger;
 import bx.util.Zones;
+import com.google.common.base.Stopwatch;
 import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
-import com.google.common.base.Stopwatch;
-
 public class CoinbaseProviderTest extends BqTest {
 
-	Logger logger = Slogger.forEnclosingClass();
+  Logger logger = Slogger.forEnclosingClass();
+
   @Test
   public void testX() {
     CoinbaseDataProvider cb = new CoinbaseDataProvider();
@@ -153,31 +152,32 @@ public class CoinbaseProviderTest extends BqTest {
     Assertions.assertThat(CoinbaseDataProvider.toCoinbaseSymbol("ETH/EUR")).isEqualTo("ETH-EUR");
   }
 
-  
   @Test
   public void testCache() {
-	  var cb = new CoinbaseDataProvider();
-	  cb.invalidateAll();
-	  
-	  Stopwatch sw = Stopwatch.createStarted();
-	  cb.newRequest("btc").from(2020, 1, 1).fetchStream().forEach(it->{});
-	  long uncachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
-	  
-	  logger.atInfo().log("uncached {}ms",uncachedMs);
-	  
-	  sw = Stopwatch.createStarted();
-	  cb.newRequest("btc").from(2020, 1, 1).fetchStream().forEach(it->{});
-	  long cachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
-	  
-	  logger.atInfo().log("cached {}ms",cachedMs);
-	  
-	  double speedup = ((double)uncachedMs) / ((cachedMs>0) ? cachedMs : 1);
-	  
-	  logger.atInfo().log("cache speedup: {}x",speedup);
-	  
-	  Assertions.assertThat(speedup).withFailMessage("cache speedup should be >10x").isGreaterThan(10);
-	  
+    var cb = new CoinbaseDataProvider();
+    cb.invalidateAll();
+
+    Stopwatch sw = Stopwatch.createStarted();
+    cb.newRequest("btc").from(2020, 1, 1).fetchStream().forEach(it -> {});
+    long uncachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
+
+    logger.atInfo().log("uncached {}ms", uncachedMs);
+
+    sw = Stopwatch.createStarted();
+    cb.newRequest("btc").from(2020, 1, 1).fetchStream().forEach(it -> {});
+    long cachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
+
+    logger.atInfo().log("cached {}ms", cachedMs);
+
+    double speedup = ((double) uncachedMs) / ((cachedMs > 0) ? cachedMs : 1);
+
+    logger.atInfo().log("cache speedup: {}x", speedup);
+
+    Assertions.assertThat(speedup)
+        .withFailMessage("cache speedup should be >10x")
+        .isGreaterThan(10);
   }
+
   @Test
   public void testDaysAgo() {
     new CoinbaseDataProvider()

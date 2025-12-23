@@ -3,19 +3,17 @@ package bq.provider;
 import bq.BqTest;
 import bx.sql.duckdb.DuckTable;
 import bx.util.Slogger;
-
+import com.google.common.base.Stopwatch;
 import java.time.LocalDate;
 import java.util.concurrent.TimeUnit;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
-import com.google.common.base.Stopwatch;
-
 public class MassiveProviderTest extends BqTest {
 
-	Logger logger = Slogger.forEnclosingClass();
+  Logger logger = Slogger.forEnclosingClass();
+
   @Test
   public void testIt() {
 
@@ -40,36 +38,30 @@ public class MassiveProviderTest extends BqTest {
     Assertions.assertThat(list.get(0).getDate()).isEqualTo(from);
     Assertions.assertThat(list.get(7).getDate()).isEqualTo(to);
   }
-  
 
-	  @Test
-	  public void testCache() {
-		  var cb = new MassiveProvider();
-		  cb.invalidateAll();
-		  
-		  Stopwatch sw = Stopwatch.createStarted();
-		  cb.newRequest("btc").from(2020, 1, 1).fetchStream().forEach(it->{});
-		  long uncachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
-		  
-		  logger.atInfo().log("uncached {}ms",uncachedMs);
-		  
-		  sw = Stopwatch.createStarted();
-		  cb.newRequest("GOOG").from(2020, 1, 1).fetchStream().forEach(it->{});
-		  long cachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
-		  
-		  logger.atInfo().log("cached {}ms",cachedMs);
-		  
-		  double speedup = ((double)uncachedMs) / ((cachedMs>0) ? cachedMs : 1);
-		  
-		  logger.atInfo().log("cache speedup: {}x",speedup);
-		  
-		  
-		  // cache speedup is not as big for Massive as Coinbase because their page sizes are much bigger
-		  // so large date ranges can be fetched in one request
-		  Assertions.assertThat(speedup).withFailMessage("cache speedup should be >2x").isGreaterThan(2);
-		  
-	  
-	  
-	  
+  @Test
+  public void testCache() {
+    var cb = new MassiveProvider();
+    cb.invalidateAll();
+
+    Stopwatch sw = Stopwatch.createStarted();
+    cb.newRequest("btc").from(2020, 1, 1).fetchStream().forEach(it -> {});
+    long uncachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
+
+    logger.atInfo().log("uncached {}ms", uncachedMs);
+
+    sw = Stopwatch.createStarted();
+    cb.newRequest("GOOG").from(2020, 1, 1).fetchStream().forEach(it -> {});
+    long cachedMs = sw.elapsed(TimeUnit.MILLISECONDS);
+
+    logger.atInfo().log("cached {}ms", cachedMs);
+
+    double speedup = ((double) uncachedMs) / ((cachedMs > 0) ? cachedMs : 1);
+
+    logger.atInfo().log("cache speedup: {}x", speedup);
+
+    // cache speedup is not as big for Massive as Coinbase because their page sizes are much bigger
+    // so large date ranges can be fetched in one request
+    Assertions.assertThat(speedup).withFailMessage("cache speedup should be >2x").isGreaterThan(2);
   }
 }

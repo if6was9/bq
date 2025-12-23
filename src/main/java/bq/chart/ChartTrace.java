@@ -1,19 +1,14 @@
 package bq.chart;
 
+import bx.util.Json;
+import bx.util.Zones;
+import com.google.common.base.Preconditions;
 import java.util.function.Consumer;
-
 import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
-
-import com.google.common.base.Preconditions;
-
-
-import bx.sql.mapper.Mappers;
-import bx.util.Json;
-import bx.util.Zones;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -180,25 +175,25 @@ public class ChartTrace {
     return this;
   }
 
- // public ChartTrace addDateSeries(DuckDb db, Consumer<StatementBuilder> b) {
- //   return addData(db.template().query(b, Mappers.dateNumberPointMapper()).toList());
- // }
+  // public ChartTrace addDateSeries(DuckDb db, Consumer<StatementBuilder> b) {
+  //   return addData(db.template().query(b, Mappers.dateNumberPointMapper()).toList());
+  // }
 
- // public ChartTrace addData(Iterable<bq.util.DateNumberPoint> pairs) {
- //   Preconditions.checkNotNull(pairs != null, "pairs");
- //   ArrayNode d = Json.createArrayNode();
- //   ArrayNode p = Json.createArrayNode();
+  // public ChartTrace addData(Iterable<bq.util.DateNumberPoint> pairs) {
+  //   Preconditions.checkNotNull(pairs != null, "pairs");
+  //   ArrayNode d = Json.createArrayNode();
+  //   ArrayNode p = Json.createArrayNode();
 
- //   pairs.forEach(
- //       it -> {
- //         if (it.getDate() != null && it.getDouble().isPresent()) {
- //           d.add(it.getDate().toString());
- //           p.add(it.getDouble().get());
- //         }
- //       });
+  //   pairs.forEach(
+  //       it -> {
+  //         if (it.getDate() != null && it.getDouble().isPresent()) {
+  //           d.add(it.getDate().toString());
+  //           p.add(it.getDouble().get());
+  //         }
+  //       });
 
- //   return addData(d, p);
- // }
+  //   return addData(d, p);
+  // }
 
   public ChartTrace addData(Indicator<Num> indicator) {
     ArrayNode d = Json.createArrayNode();
