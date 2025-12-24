@@ -110,7 +110,7 @@ public class BtcPowerLawCalculator {
     logger.atDebug().log("calibrate a={} step={}", a, step);
 
     Preconditions.checkArgument(model.quantiles.size() == 100);
-    Preconditions.checkArgument(a >= 2 && a < 10, "a must be in range [2,10] was %s", a);
+    Preconditions.checkArgument(a >= 2 && a < 10, "a must be in range [2,10] was {}", a);
     Preconditions.checkArgument(step > 0, "step must be >0");
     if (step < -0.0001) {
       throw new BqException("could not calibrate quantile model for a=" + a);
@@ -137,7 +137,7 @@ public class BtcPowerLawCalculator {
     Preconditions.checkState(q >= 0);
     Preconditions.checkState(q < 99);
 
-    logger.atDebug().log("starting quantile a=%s c=%s q=%s", a, c, q);
+    logger.atDebug().log("starting quantile a={} c={} q={}", a, c, q);
 
     model.quantiles.set(q, new BigDecimal(c).setScale(3, RoundingMode.HALF_UP).doubleValue());
 
@@ -164,7 +164,7 @@ public class BtcPowerLawCalculator {
       if (model.quantiles.get(q) == null) {
 
         double qv = new BigDecimal(c).setScale(3, RoundingMode.HALF_UP).doubleValue();
-        logger.atDebug().log("q[%s]=%s", q, qv);
+        logger.atDebug().log("q[{}]={}", q, qv);
         model.quantiles.set(q, qv);
       }
     }
@@ -193,7 +193,7 @@ public class BtcPowerLawCalculator {
     calibrateQuantile(data, a, m, BtcPowerLawCalculator.INITIAL_C_INCREMENT);
 
     logger.atInfo().log(
-        "quantiles generated: duration=%sms bars=%s first=%s last=%s",
+        "quantiles generated: duration={}ms bars={} first={} last={}",
         sw.elapsed(TimeUnit.MILLISECONDS),
         data.getBarCount(),
         data.getFirstBar().getBeginTime().atZone(Zones.UTC).toLocalDate(),

@@ -18,7 +18,7 @@ public class BtcPiMultipleIndicatorTest extends IndicatorTest {
   @Test
   public void testIt() {
 
-    PriceTable t = getTestData().loadBtcPriceTable("btc");
+    PriceTable t = getTestData().createBTCTable("btc");
 
     t.addIndicator("pi", "btc_pi_multiple()");
 

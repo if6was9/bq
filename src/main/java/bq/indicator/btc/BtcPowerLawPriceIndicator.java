@@ -2,10 +2,12 @@ package bq.indicator.btc;
 
 import java.time.LocalDate;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.Indicator;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
 
-public class BtcPowerLawPriceIndicator extends AbstractBtcPowerLawIndicator {
+public class BtcPowerLawPriceIndicator extends AbstractBtcPowerLawIndicator
+    implements Indicator<Num> {
 
   public BtcPowerLawPriceIndicator(BarSeries series) {
     super(series);

@@ -48,12 +48,9 @@ public class DuckColumnIndicator implements Indicator<Num> {
 
     Map<Long, Num> rowIdMap = Maps.newHashMap();
 
-    String sql =
-        String.format(
-            "select rowid, %s from %s", column, this.priceTable.getDuckTable().getTableName());
+    String sql = String.format("select rowid, %s from %s", column, this.priceTable.getTableName());
 
     this.priceTable
-        .getDuckTable()
         .sql(sql)
         .query(
             rch -> {

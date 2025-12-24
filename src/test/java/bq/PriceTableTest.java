@@ -10,10 +10,10 @@ public class PriceTableTest extends BqTest {
   @Test
   public void testIt() {
 
-    PriceTable pt = PriceTable.from(getTestData().loadBtcPriceData("btc"));
+    PriceTable pt = PriceTable.from(getTestData().createBTCTable("btc"));
 
     // pt.getDuckTable().getJdbcClient().sql("delete from btc where date<'2025-01-15'").update();
-    Assertions.assertThat(pt.getDuckTable()).isNotNull();
+    Assertions.assertThat(pt).isNotNull();
 
     // ema(foo(close),3)
 
@@ -27,6 +27,6 @@ public class PriceTableTest extends BqTest {
           return new EMAIndicator(new ClosePriceIndicator(bs), 3);
         });
 
-    pt.getDuckTable().show();
+    pt.show();
   }
 }

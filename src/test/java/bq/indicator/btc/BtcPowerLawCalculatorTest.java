@@ -9,7 +9,7 @@ public class BtcPowerLawCalculatorTest extends IndicatorTest {
 
   @Test
   public void testIt() {
-    PriceTable t = getTestData().loadBtcPriceTable("btc");
+    PriceTable t = getTestData().createBTCTable("btc");
 
     QuantileModel m = BtcPowerLawCalculator.generateQuantileModel(t.getBarSeries(), 5.65);
   }

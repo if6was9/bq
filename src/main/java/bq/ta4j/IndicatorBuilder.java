@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Indicator;
@@ -90,7 +91,7 @@ public class IndicatorBuilder {
         new ClassGraph()
             .enableClassInfo()
             .enableMethodInfo()
-            .acceptPackages("org.ta4j", "bq.indicator", "bq.indicator.bq")
+            .acceptPackages("org.ta4j", "bq.indicator", "bq.indicator.btc")
             .scan()) { // Start the scan
       for (ClassInfo classInfo : scanResult.getClassesImplementing(Indicator.class)) {
 
@@ -106,6 +107,12 @@ public class IndicatorBuilder {
       }
     }
 
+    map.keySet().stream()
+        .sorted()
+        .forEach(
+            it -> {
+              logger.atDebug().log("{}={}", it, map.get(it));
+            });
     return map;
   }
 
@@ -320,9 +327,9 @@ public class IndicatorBuilder {
             .toList();
 
     for (Constructor ctor : ctors) {
-      Indicator<Num> indicator = tryInvoke(ctor, args, bs);
-      if (indicator != null) {
-        return indicator;
+      Optional<Indicator<Num>> indicator = tryInvoke(ctor, args, bs);
+      if (indicator.isPresent()) {
+        return indicator.get();
       }
     }
 
@@ -351,9 +358,9 @@ public class IndicatorBuilder {
             .toList();
 
     for (Constructor ctor : ctors) {
-      Indicator<Num> indicator = tryInvoke(ctor, implicitArgs, bs);
-      if (indicator != null) {
-        return indicator;
+      Optional<Indicator<Num>> indicator = tryInvoke(ctor, implicitArgs, bs);
+      if (indicator.isPresent()) {
+        return indicator.get();
       }
     }
 
@@ -379,9 +386,9 @@ public class IndicatorBuilder {
             .toList();
 
     for (Constructor ctor : ctors) {
-      Indicator<Num> indicator = tryInvoke(ctor, implicitArgs, bs);
-      if (indicator != null) {
-        return indicator;
+      Optional<Indicator<Num>> indicator = tryInvoke(ctor, implicitArgs, bs);
+      if (indicator.isPresent()) {
+        return indicator.get();
       }
     }
 
@@ -409,10 +416,10 @@ public class IndicatorBuilder {
     return from;
   }
 
-  Indicator<Num> tryInvoke(Constructor ctor, List<Object> args, BarSeries bs) {
+  Optional<Indicator<Num>> tryInvoke(Constructor ctor, List<Object> args, BarSeries bs) {
     try {
       if (ctor.getParameterCount() != args.size()) {
-        return null;
+        return Optional.empty();
       }
 
       List<Object> castedArgs = Lists.newArrayList();
@@ -424,12 +431,13 @@ public class IndicatorBuilder {
       }
 
       Object[] arr = castedArgs.toArray(new Object[0]);
-      return (Indicator<Num>) ctor.newInstance(arr);
-    } catch (IllegalArgumentException
-        | InstantiationException
+
+      return Optional.ofNullable((Indicator<Num>) ctor.newInstance(arr));
+    } catch (InstantiationException
         | InvocationTargetException
-        | IllegalAccessException e) {
-      throw new BxException(e);
+        | IllegalAccessException
+        | RuntimeException e) {
+      return Optional.empty();
     }
   }
 }

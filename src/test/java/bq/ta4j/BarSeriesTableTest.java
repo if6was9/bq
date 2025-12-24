@@ -14,7 +14,7 @@ public class BarSeriesTableTest extends BqTest {
 
     Assertions.assertThat(testData.getDataSource()).isNotNull();
 
-    DuckTable dt = testData.loadBtcPriceData("btc");
+    DuckTable dt = testData.createBTCTable("btc");
 
     dt.show();
   }

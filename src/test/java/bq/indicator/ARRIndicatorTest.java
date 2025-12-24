@@ -48,7 +48,7 @@ public class ARRIndicatorTest extends IndicatorTest {
 
   @Test
   public void applyIndicator() {
-    DuckTable dt = getTestData().loadBtcPriceData("btc");
+    DuckTable dt = getTestData().createBTCTable("btc");
 
     dt.sql("delete from btc where date<'2016-01-01'").update();
 

@@ -20,9 +20,9 @@ public class TrendlineIndicatorTest extends IndicatorTest {
   @Test
   public void testIt() {
 
-    PriceTable wgmi = getTestData().loadWGMIPriceTable("wgmi");
+    PriceTable wgmi = getTestData().createWGMITable("wgmi");
 
-    wgmi.getDuckTable().sql("delete from wgmi where date<'2022-06-10'").update();
+    wgmi.sql("delete from wgmi where date<'2022-06-10'").update();
 
     String t0 = "2022-12-29"; // point 0 on lower channel band
     String t1 = "2024-09-06"; // point 1 on lower channel band

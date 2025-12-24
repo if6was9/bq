@@ -2,6 +2,7 @@ package bq.provider;
 
 import bq.DataManager;
 import bq.OHLCV;
+import bq.PriceTable;
 import bq.ta4j.Bars;
 import bx.sql.duckdb.DuckTable;
 import bx.util.Zones;
@@ -86,7 +87,7 @@ public abstract class DataProvider {
       return this;
     }
 
-    Request symbol(String symbol) {
+    public Request symbol(String symbol) {
       this.symbol = symbol;
       return this;
     }
@@ -122,11 +123,15 @@ public abstract class DataProvider {
       return fetchIntoTable(table.getTableName());
     }
 
-    public DuckTable fetchIntoTable(String table) {
+    public PriceTable fetchIntoTable(String table) {
+      return fetchIntoTable(table, false);
+    }
+
+    public PriceTable fetchIntoTable(String table, boolean create) {
       Preconditions.checkState(DataProvider.this.dataSource != null, "dataSource must be set");
       DataManager ddm = new DataManager().dataSource(dataSource);
       ddm.insert(table, fetchStream().toList());
-      return DuckTable.of(dataSource, table);
+      return PriceTable.from(dataSource, table);
     }
   }
 

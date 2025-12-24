@@ -10,9 +10,9 @@ public class BtcMayerMultipleIndicatorTest extends IndicatorTest {
   @Test
   public void testIt() {
 
-    PriceTable t = getTestData().loadBtcPriceTable("btc");
+    PriceTable t = getTestData().createBTCTable("btc");
 
-    t.getDuckTable().sql("delete from btc where date <'2014-12-01'").update();
+    t.sql("delete from btc where date <'2014-12-01'").update();
 
     t.addIndicator("mm", "btc_mayer_multiple()");
     t.addIndicator("sma", "sma(350)");

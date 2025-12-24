@@ -81,7 +81,7 @@ public class BtcGenesisIndicatorTest extends IndicatorTest {
 
   @Test
   public void testX() {
-    PriceTable btc = getTestData().loadBtcPriceTable("btc");
+    PriceTable btc = getTestData().createBTCTable("btc");
 
     btc.addIndicator("genesis", new BtcDaysSinceGenesisIndicator(btc.getBarSeries()));
 
@@ -96,7 +96,7 @@ public class BtcGenesisIndicatorTest extends IndicatorTest {
 
   @Test
   public void testY() {
-    PriceTable btc = getTestData().loadBtcPriceTable("btc");
+    PriceTable btc = getTestData().createBTCTable("btc");
 
     btc.addIndicator("genesis", new BtcPowerLawPriceIndicator(btc.getBarSeries()));
 

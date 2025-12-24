@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
@@ -39,9 +38,9 @@ public class BtcPowerLawModelTest extends IndicatorTest {
   @Test
   public void rebuildModel() throws IOException {
 
-    PriceTable t = getTestData().loadBtcPriceTable("test");
+    PriceTable t = getTestData().createBTCTable("test");
 
-    t.getDuckTable().sql("delete from test where date < '2013-01-01'").update();
+    t.sql("delete from test where date < '2013-01-01'").update();
 
     BtcPowerLawModel power = BtcPowerLawModel.create();
 
@@ -60,12 +59,11 @@ public class BtcPowerLawModelTest extends IndicatorTest {
   }
 
   @Test
-  @Disabled
   public void testIt() {
 
-    PriceTable t = getTestData().loadBtcPriceTable("test");
+    PriceTable t = getTestData().createBTCTable("test");
 
-    t.getDuckTable().sql("delete from test where date < '2013-01-01'").update();
+    t.sql("delete from test where date < '2013-01-01'").update();
 
     QuantileModel m = BtcPowerLawCalculator.generateQuantileModel(t.getBarSeries(), 5.65);
 
@@ -243,11 +241,10 @@ public class BtcPowerLawModelTest extends IndicatorTest {
   }
 
   @Test
-  @Disabled
   public void testChart() {
-    PriceTable t = getTestData().loadBtcPriceTable("btc");
+    PriceTable t = getTestData().createBTCTable("btc");
 
-    t.addIndicator("q10", "btc_power_law_price(10) ");
+    t.addIndicator("q10", "btc_power_law_price(10)");
     t.addIndicator("q50", "btc_power_law_price(50)");
     t.addIndicator("q75", "btc_power_law_price(75)");
     t.addIndicator("q95", "btc_power_law_price(95)");

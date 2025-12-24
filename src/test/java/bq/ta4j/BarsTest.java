@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.ta4j.core.Bar;
 
@@ -90,15 +89,14 @@ public class BarsTest extends BqTest {
   }
 
   @Test
-  @Disabled
   public void generateTestData() {
 
     // This will fetch some sample data that can be pasted back into test method
 
     new MassiveProvider()
-        .newRequest("GOOG")
-        .from(LocalDate.of(2025, 1, 1))
-        .to(LocalDate.of(2025, 3, 30))
+        .newRequest("WGMI")
+        .from(LocalDate.of(2000, 1, 1))
+        .to(LocalDate.of(2025, 12, 31))
         .fetchStream()
         .map(BarsTest::createAddBarCode)
         .forEach(

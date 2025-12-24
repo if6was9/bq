@@ -13,14 +13,13 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import javax.sql.DataSource;
 import org.springframework.jdbc.core.RowMapper;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.num.Num;
 
-public class PriceTable {
-
-  DuckTable table;
+public class PriceTable extends DuckTable {
 
   AtomicReference<BarSeries> barSeries = new AtomicReference<BarSeries>();
 
@@ -46,18 +45,22 @@ public class PriceTable {
     }
   }
 
-  PriceTable() {
-    super();
+  public PriceTable(DuckTable t) {
+    super(t.getDataSource(), t.getName());
+  }
+
+  public PriceTable(DataSource ds, String table) {
+    super(ds, table);
   }
 
   public static PriceTable from(DuckTable t) {
-    PriceTable pt = new PriceTable();
-    pt.table = t;
+    PriceTable pt = new PriceTable(t);
+
     return pt;
   }
 
-  public DuckTable getDuckTable() {
-    return this.table;
+  public static PriceTable from(DataSource ds, String name) {
+    return new PriceTable(ds, name);
   }
 
   public BarSeries getBarSeries() {
@@ -73,10 +76,9 @@ public class PriceTable {
 
   private BarSeries loadBarSeries() {
 
-    String sql =
-        String.format("select rowid, * from %s order by date asc", getDuckTable().getTableName());
+    String sql = String.format("select rowid, * from %s order by date asc", getTableName());
 
-    var rows = table.select(sql).query(new OHLCVRowMapper()).list();
+    var rows = select(sql).query(new OHLCVRowMapper()).list();
 
     return Bars.toBarSeries(rows.stream());
   }
@@ -86,7 +88,7 @@ public class PriceTable {
   public void addIndicator(String col, Indicator<Num> ind) {
     BarSeriesIterator t = Bars.toIterator(ind.getBarSeries());
 
-    table.addColumn(col + " double");
+    addColumn(col + " double");
     while (t.hasNext()) {
       IndexedBar b = (IndexedBar) t.next();
       Num num = null;
@@ -99,10 +101,10 @@ public class PriceTable {
 
       if (num == null || Double.isNaN(num.doubleValue())) {
         // Is recording NaN as NULL the right thing to do?
-        table.update(b.getId(), col, null);
+        update(b.getId(), col, null);
       } else {
 
-        table.update(b.getId(), col, num.doubleValue());
+        update(b.getId(), col, num.doubleValue());
       }
     }
   }
@@ -120,7 +122,7 @@ public class PriceTable {
     return new DuckColumnIndicator(this, col);
   }
 
-  public void addIndicator(String col, Function<BarSeries, Indicator> fn) {
+  public void addIndicator(String col, Function<BarSeries, Indicator<Num>> fn) {
     BarSeries bs = loadBarSeries();
     Indicator<Num> ind = fn.apply(bs);
 
