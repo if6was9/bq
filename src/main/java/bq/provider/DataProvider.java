@@ -4,7 +4,6 @@ import bq.DataManager;
 import bq.OHLCV;
 import bq.PriceTable;
 import bq.ta4j.Bars;
-import bx.sql.duckdb.DuckTable;
 import bx.util.Zones;
 import com.google.common.base.Preconditions;
 import java.time.LocalDate;
@@ -111,7 +110,7 @@ public abstract class DataProvider {
           .build();
     }
 
-    public DuckTable fetchIntoTable() {
+    public PriceTable fetchIntoTable() {
       String tableName = String.format("temp_%s", System.currentTimeMillis());
 
       Preconditions.checkState(dataSource != null, "DataSource must be set");
@@ -133,6 +132,10 @@ public abstract class DataProvider {
       ddm.insert(table, fetchStream().toList());
       return PriceTable.from(dataSource, table);
     }
+  }
+
+  public DataSource getDataSource() {
+    return this.dataSource;
   }
 
   public <T extends DataProvider> T dataSource(DataSource ds) {

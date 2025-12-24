@@ -61,4 +61,21 @@ public class DataManagerTest extends BqTest {
 
     table.prettyQuery().select();
   }
+
+  @Test
+  public void testInlineParse() {
+    String csv =
+        """
+        a,b,c
+        1,2,3
+
+
+        4,5,6
+        7,8,9
+        """;
+
+    var t = DuckTable.of(getDataSource(), "test").csv().fromString(csv).load();
+
+    t.show();
+  }
 }

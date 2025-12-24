@@ -1,6 +1,7 @@
 package bq.provider;
 
 import bx.util.Json;
+import bx.util.Rounding;
 import bx.util.Slogger;
 import com.google.common.hash.Hashing;
 import java.io.File;
@@ -18,6 +19,9 @@ public abstract class CachingDataProvider extends DataProvider {
       new File(new File(System.getProperty("java.io.tmpdir"), "bq"), getClass().getName());
 
   static AtomicLong invalidBefore = new AtomicLong(0);
+
+  static AtomicLong cacheHitCount = new AtomicLong();
+  static AtomicLong cacheAttemptCount = new AtomicLong();
 
   public CachingDataProvider() {
     super();
@@ -60,16 +64,27 @@ public abstract class CachingDataProvider extends DataProvider {
   }
 
   public synchronized Optional<JsonNode> getCachedJson(String url) {
+    try {
+      cacheAttemptCount.incrementAndGet();
+      File file = getCachedFile(url);
 
-    File file = getCachedFile(url);
+      if (!isExpired(file)) {
 
-    if (!isExpired(file)) {
-
-      JsonNode n = Json.readTree(file);
-
-      return Optional.of(n);
+        JsonNode n = Json.readTree(file);
+        cacheHitCount.incrementAndGet();
+        return Optional.of(n);
+      }
+      return Optional.empty();
+    } finally {
+      if (cacheAttemptCount.get() % 10 == 0) {
+        logger.atInfo().log(
+            "cache hit={} total={} ratio={}",
+            cacheHitCount.get(),
+            cacheAttemptCount.get(),
+            Rounding.format(
+                cacheHitCount.get() / (double) Math.max(1, cacheAttemptCount.get()), 2));
+      }
     }
-    return Optional.empty();
   }
 
   public synchronized void putCache(String url, JsonNode data) {

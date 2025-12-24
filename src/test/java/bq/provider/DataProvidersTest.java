@@ -1,9 +1,10 @@
 package bq.provider;
 
+import bq.BqTest;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class DataProvidersTest {
+public class DataProvidersTest extends BqTest {
 
   @Test
   public void testIt() {
@@ -33,5 +34,11 @@ public class DataProvidersTest {
             it -> {
               System.out.println(it);
             });
+  }
+
+  @Test
+  public void testItx() {
+    var t = DataProviders.forSymbol("btc").fetchIntoTable();
+    t.show();
   }
 }

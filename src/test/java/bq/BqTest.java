@@ -1,6 +1,7 @@
 package bq;
 
 import bq.chart.Chart;
+import bq.provider.DataProviders;
 import bx.sql.PrettyQuery;
 import bx.sql.duckdb.DuckDataSource;
 import bx.util.S;
@@ -56,6 +57,7 @@ public abstract class BqTest {
     logger.atTrace().log("setup");
     dataSource = DuckDataSource.createInMemory();
 
+    DataProviders.setDataSource(dataSource);
     ddm = new DataManager();
     ddm.dataSource(dataSource);
   }

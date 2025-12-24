@@ -16,6 +16,7 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Map;
@@ -99,9 +100,13 @@ public class IndicatorBuilder {
           String className = classInfo.getName();
 
           String shortName = toShortName(classInfo);
-          map.put(shortName, (Class<Indicator<?>>) Class.forName(className));
 
-        } catch (ClassNotFoundException e) {
+          Class<Indicator<?>> clazz = (Class<Indicator<?>>) Class.forName(className);
+          if (Modifier.isAbstract(clazz.getModifiers()) == false) {
+            map.put(shortName, clazz);
+          }
+
+        } catch (ClassNotFoundException | RuntimeException e) {
           logger.atWarn().setCause(e).log();
         }
       }
