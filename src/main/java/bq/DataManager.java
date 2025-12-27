@@ -37,7 +37,13 @@ public class DataManager {
   public DuckTable createOHLCV(String table, boolean withConstraint) {
     String sql =
         """
-CREATE TABLE %s (date date not null, open double null, high double null, low double null, close double null, volume double null)
+CREATE TABLE %s (
+    		date date not null,
+    		open double null,
+    		high double null,
+    		low double null,
+    		close double null,
+    		volume double null)
 """;
 
     sql = String.format(sql, table);
