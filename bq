@@ -1,0 +1,16 @@
+#!/bin/bash
+
+
+if [[ -f pom.xml ]]; then
+
+# NOTE quoted strings with whitespace arent passed correctly
+ARG_STRING="$@"
+exec mvn  exec:java -Dexec.args="${ARG_STRING}"
+
+fi
+
+
+
+BQ_HOME=${BQ_HOME-"/app"}
+
+java -cp "${BQ_HOME}/lib/*" bq.App "$@" 
