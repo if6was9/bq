@@ -39,6 +39,8 @@ public class Ticker {
     }
   }
 
+  private Ticker() {}
+
   public boolean isCrypto() {
     return type == TickerType.CRYPTO;
   }
