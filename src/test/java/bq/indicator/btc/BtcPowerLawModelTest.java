@@ -21,8 +21,7 @@ public class BtcPowerLawModelTest extends IndicatorTest {
 
   Logger logger = Slogger.forEnclosingClass();
 
-  File modelOutputFile = new File("./btc-power-law-model.json");
-  File btcPriceData = new File("./btc-price-data.csv");
+  File modelOutputFile = new File("./target/btc-power-law-model.json");
 
   @Test
   public void test() {
