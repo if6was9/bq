@@ -3,6 +3,7 @@ WORKDIR /app
 
 RUN useradd app -m -d /app
 COPY target/stage/lib/ /app/lib/
+COPY src/main/resources/logback-container.xml /app/classes/logback.xml
 COPY target/*.jar /app/lib/
 COPY bqsh /bin/
 COPY bq /bin/

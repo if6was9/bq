@@ -10,7 +10,7 @@ public class Ticker {
   TickerType type;
   String unqualified;
 
-  static Set<String> KNOWN_INDICES = Set.of("RUT", "NQ", "NDQ", "SPX", "DJIA");
+  static Set<String> KNOWN_INDICES = Set.of("RUT", "NQ", "NDX", "SPX", "DJIA");
   static Set<String> KNOWN_CRYPTO =
       Set.of(
           "BTC", "ETH", "ADA", "DOGE", "WIF", "SUI", "SOL", "HYPE", "RNDR", "RENDER", "FETCH",

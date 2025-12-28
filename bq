@@ -13,4 +13,4 @@ fi
 
 BQ_HOME=${BQ_HOME-"/app"}
 
-java -cp "${BQ_HOME}/lib/*" bq.App "$@" 
+java -cp "${BQ_HOME}/classes:${BQ_HOME}/lib/*" bq.App "$@" 

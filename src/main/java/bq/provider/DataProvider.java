@@ -3,6 +3,7 @@ package bq.provider;
 import bq.DataManager;
 import bq.OHLCV;
 import bq.PriceTable;
+import bq.Ticker;
 import bq.ta4j.Bars;
 import bx.util.Zones;
 import com.google.common.base.Preconditions;
@@ -90,6 +91,10 @@ public abstract class DataProvider {
       return this;
     }
 
+    public Request symbol(Ticker t) {
+      return symbol(t.getSymbol());
+    }
+
     public Request symbol(String symbol) {
       this.symbol = symbol;
       return this;
@@ -152,6 +157,10 @@ public abstract class DataProvider {
 
   public LocalDate getDefaultNotBefore() {
     return LocalDate.now(Zones.UTC).minusYears(2);
+  }
+
+  public Request newRequest(Ticker t) {
+    return newRequest().symbol(t);
   }
 
   public Request newRequest(String symbol) {

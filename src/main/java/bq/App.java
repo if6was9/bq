@@ -23,6 +23,12 @@ public class App {
   public static void main(String[] args) throws Exception {
 
     logger.atDebug().log("args: {}", List.of(args));
+
+    int exitCode = new CommandLine(new App()).execute(args);
+    System.exit(exitCode);
+  }
+
+  private void initConfig() {
     Config cfg = Config.get();
 
     if (cfg.get("DB_URL").isEmpty()) {
@@ -35,9 +41,6 @@ public class App {
     Db db = Db.get();
 
     logger.atInfo().log("db: {}", db);
-
-    int exitCode = new CommandLine(new App()).execute(args);
-    System.exit(exitCode);
   }
 
   @Command(name = "fetch", description = "fetch data")
@@ -48,6 +51,7 @@ public class App {
               description = "country code(s) to be resolved")
           String[] countryCodes) {
 
+    initConfig();
     return 0;
   }
 
@@ -58,6 +62,7 @@ public class App {
               paramLabel = "<countryCode>",
               description = "country code(s) to be resolved")
           String[] countryCodes) {
+    initConfig();
     System.out.println("update");
   }
 }
