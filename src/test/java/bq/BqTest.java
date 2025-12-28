@@ -16,9 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.event.Level;
-
 import org.springframework.jdbc.core.simple.JdbcClient;
-
 
 public abstract class BqTest {
 

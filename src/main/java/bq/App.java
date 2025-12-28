@@ -1,34 +1,63 @@
 package bq;
 
+import bx.sql.Db;
+import bx.util.Config;
+import bx.util.Slogger;
+import com.google.common.base.Preconditions;
 import java.util.List;
-
+import org.slf4j.Logger;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "bq", mixinStandardHelpOptions = true, version = "0.0.1", description = "BitQuant Tool")
+@Command(
+    name = "bq",
+    mixinStandardHelpOptions = true,
+    version = "0.0.1",
+    description = "BitQuant Tool")
 public class App {
 
-	public static void main(String[] args) throws Exception {
+  public static final String DEFAULT_DB_URL = "jdbc:duckdb:";
+  static Logger logger = Slogger.forEnclosingClass();
 
-		System.out.println("ARGS: " + List.of(args));
+  public static void main(String[] args) throws Exception {
 
-		int exitCode = new CommandLine(new App()).execute(args);
-		System.exit(exitCode);
+    logger.atDebug().log("args: {}", List.of(args));
+    Config cfg = Config.get();
 
-	}
+    if (cfg.get("DB_URL").isEmpty()) {
 
-	@Command(name = "fetch", description = "fetch data")
-	int subCommandViaMethod(
-			@Parameters(arity = "1..*", paramLabel = "<countryCode>", description = "country code(s) to be resolved") String[] countryCodes) {
+      logger.atInfo().log("DB_URL not set ... using in-memory default '{}'", DEFAULT_DB_URL);
+      cfg.override("DB_URL", DEFAULT_DB_URL, true);
 
-		return 0;
-	}
+      Preconditions.checkState(cfg.get("DB_URL").orElse("").equals(DEFAULT_DB_URL));
+    }
+    Db db = Db.get();
 
-	@Command(name = "update", description = "update data")
-	void subCommandViaMethod2(
-			@Parameters(arity = "1..*", paramLabel = "<countryCode>", description = "country code(s) to be resolved") String[] countryCodes) {
-		System.out.println("update");
-	}
+    logger.atInfo().log("db: {}", db);
 
+    int exitCode = new CommandLine(new App()).execute(args);
+    System.exit(exitCode);
+  }
+
+  @Command(name = "fetch", description = "fetch data")
+  int subCommandViaMethod(
+      @Parameters(
+              arity = "1..*",
+              paramLabel = "<countryCode>",
+              description = "country code(s) to be resolved")
+          String[] countryCodes) {
+
+    return 0;
+  }
+
+  @Command(name = "update", description = "update data")
+  void subCommandViaMethod2(
+      @Parameters(
+              arity = "1..*",
+              paramLabel = "<countryCode>",
+              description = "country code(s) to be resolved")
+          String[] countryCodes) {
+    System.out.println("update");
+  }
 }
