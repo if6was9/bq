@@ -2,13 +2,18 @@ package bq.provider;
 
 import bq.PriceTable;
 import bq.Ticker;
+
+import bx.util.Config;
+
 import javax.sql.DataSource;
 
 public abstract class StorageProvider {
 
-  String bucket;
 
-  DataSource dataSource;
+  private String bucket;
+
+  private DataSource dataSource;
+
 
   public abstract PriceTable createTableFromStorage(Ticker ticker);
 
@@ -16,7 +21,12 @@ public abstract class StorageProvider {
 
   public abstract void writeTableToStorage(Ticker ticker, PriceTable table);
 
-  public StorageProvider() {}
+
+  public StorageProvider() {
+
+    this.bucket = Config.get().get("BQ_BUCKET").orElse(null);
+  }
+
 
   public StorageProvider(DataSource ds, String bucket) {
     this();
@@ -33,7 +43,9 @@ public abstract class StorageProvider {
     return (T) this;
   }
 
+
   public final String getBucket() {
+
     return bucket;
   }
 

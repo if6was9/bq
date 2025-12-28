@@ -57,6 +57,5 @@ jobs:
           BITCOIN_RPC_PASSWORD: ${{ secrets.BITCOIN_RPC_PASSWORD }}
           BITCOIN_RPC_URL: https://bn.harbord.cloud
         run: |
-          mvn --version
           ./build.sh
           

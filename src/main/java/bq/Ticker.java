@@ -136,7 +136,7 @@ public class Ticker {
     Preconditions.checkArgument(t.getType() != null, "invalid symbol: %s", t);
     Preconditions.checkArgument(S.isNotBlank(t.getSymbol()), "invalid symbol: %s", t.getSymbol());
     Preconditions.checkArgument(
-        t.getSymbol().chars().allMatch(c -> Character.isLetterOrDigit(c)),
+        t.getSymbol().chars().allMatch(c -> (Character.isLetterOrDigit(c)) || c == '.'),
         "invalid symbol: %s",
         t.getSymbol());
     return t;

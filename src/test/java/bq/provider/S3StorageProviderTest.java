@@ -1,11 +1,18 @@
 package bq.provider;
 
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+
 import bq.BqTest;
 import bq.PriceTable;
 import bq.Ticker;
-import org.junit.jupiter.api.Test;
+import bx.util.Slogger;
+
 
 public class S3StorageProviderTest extends BqTest {
+
+  Logger logger = Slogger.forEnclosingClass();
+
 
   @Test
   public void testX() {
@@ -24,4 +31,27 @@ public class S3StorageProviderTest extends BqTest {
     //	s3.writeTableToStorage(ticker, t);
 
   }
+
+
+  @Test
+  public void testY() {
+
+    String bucket = getTestS3BucketName();
+    logger.atInfo().log("bucket: {}", bucket);
+    S3StorageProvider s3 = new S3StorageProvider().dataSource(getDataSource()).bucket(bucket);
+
+    s3.listStocks()
+        .forEach(
+            it -> {
+              //	  System.out.println(getTicker(it));
+            });
+    s3.listCrypto()
+        .forEach(
+            it -> {
+              System.out.println(it.getTicker());
+              //	  System.out.println(getTicker(it));
+              //	  System.out.println(getTimeSinceLastModified(it).get(ChronoUnit.SECONDS)/24);
+            });
+  }
+
 }

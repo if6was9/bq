@@ -1,22 +1,49 @@
 package bq.provider;
 
+
+import bq.BqException;
+
 import bq.PriceTable;
 import bq.Ticker;
 import bq.Ticker.TickerType;
 import bx.sql.duckdb.DuckS3Extension;
 import bx.util.S;
 import bx.util.Slogger;
+
 import com.google.common.base.Preconditions;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Object;
+
 
 public class S3StorageProvider extends StorageProvider {
 
   Logger logger = Slogger.forEnclosingClass();
 
+
   DataSource dataSource;
+
 
   public S3StorageProvider() {}
 
@@ -25,6 +52,41 @@ public class S3StorageProvider extends StorageProvider {
     dataSource(ds);
     bucket(bucket);
   }
+
+
+  public class PriceDataS3Object {
+    S3Object obj;
+
+    PriceDataS3Object(S3Object x) {
+      this.obj = x;
+    }
+
+    public S3Object getS3Object() {
+      return obj;
+    }
+
+    public Ticker getTicker() {
+      return S3StorageProvider.this.getTicker(obj).orElse(null);
+    }
+
+
+    public String toUrl() {
+    	return toUrl(getTicker());
+    }
+    String toUrl(Ticker ticker) {
+        Preconditions.checkState(S.isNotBlank(getBucket()), "bucket must be set");
+        return String.format("s3://%s/%s", getBucket(), toKey(ticker));
+
+      }
+
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("ticker", getTicker())
+          .add("s3Key", getS3Object().key())
+          .toString();
+    }
+  }
+
 
   String toPrefix(TickerType tt) {
     Preconditions.checkNotNull(tt);
@@ -44,10 +106,50 @@ public class S3StorageProvider extends StorageProvider {
     return String.format("%s/1d/%s.csv", toPrefix(t.getType()), t.getSymbol().toUpperCase());
   }
 
+
   String toUrl(Ticker ticker) {
-    Preconditions.checkState(S.isNotBlank(bucket), "bucket must be set");
-    return String.format("s3://%s/%s", bucket, toKey(ticker));
+    Preconditions.checkState(S.isNotBlank(getBucket()), "bucket must be set");
+    return String.format("s3://%s/%s", getBucket(), toKey(ticker));
   }
+  Duration getTimeSinceLastModified(S3Object x) {
+    Instant t = x.lastModified();
+    return Duration.between(t, Instant.now());
+  }
+
+  Optional<Ticker> getTicker(S3Object x) {
+
+    String key = x.key();
+    if (x == null || S.isBlank(key)) {
+      return Optional.empty();
+    }
+    Ticker.TickerType type = null;
+    if (key.contains("stocks/")) {
+      type = TickerType.STOCK;
+    } else if (key.contains("crypto/")) {
+      type = TickerType.CRYPTO;
+    } else if (key.contains("indices/")) {
+      type = TickerType.INDEX;
+    } else {
+      return Optional.empty();
+    }
+
+    List<String> parts = Splitter.on("/").splitToList(key);
+    if (parts.size() < 1) {
+      return Optional.empty();
+    }
+    String f = parts.getLast();
+    if (f.endsWith(".csv.gz")) {
+      f = f.replace(".csv.gz", "");
+      return Optional.of(Ticker.of(type, f));
+    }
+    if (f.endsWith(".csv")) {
+      f = f.replace(".csv", "");
+      return Optional.of(Ticker.of(type, f));
+    }
+    return Optional.empty();
+  }
+
+ 
 
   @Override
   public PriceTable createTableFromStorage(Ticker ticker) {
@@ -98,95 +200,94 @@ public class S3StorageProvider extends StorageProvider {
     logger.atInfo().log("wrote {}", count);
   }
 
-  /*
-  	public List<S3Object> listIndices(String bucket) {
-  		return list(bucket, "indices/1d/");
-  	}
 
-  	public List<S3Object> listCrypto(String bucket) {
-  		return list(bucket, "crypto/1d/");
-  	}
 
-  	public List<S3Object> listStocks(String bucket) {
-  		return list(bucket, "stocks/1d/");
-  	}
+  public List<PriceDataS3Object> listIndices() {
+    return list("indices/1d/");
+  }
 
-  	private Closeable closeable(S3Client c) {
-  		Closeable ac = new Closeable() {
+  public List<PriceDataS3Object> listCrypto() {
+    return list("crypto/1d/");
+  }
 
-  			@Override
-  			public void close() {
-  				if (c != null) {
-  					c.close();
-  				}
+  public List<PriceDataS3Object> listStocks() {
+    return list("stocks/1d/");
+  }
 
-  			}
+  private S3Client openS3Client() {
+    Preconditions.checkState(S.isNotBlank(getBucket()), "bucket must be set");
+    return S3Client.create();
+  }
 
-  		};
-  		return ac;
-  	}
+  private List<PriceDataS3Object> list(String prefix) {
 
-  	private List<S3Object> list(String bucket, String prefix) {
+    try (S3Client s3 = openS3Client()) {
+      AtomicReference<String> token = new AtomicReference<String>();
 
-  		try (Closer closer = Closer.create()) {
-  			AtomicReference<String> token = new AtomicReference<String>();
+      List<PriceDataS3Object> list = Lists.newArrayList();
+      do {
 
-  			List<S3Object> list = Lists.newArrayList();
-  			do {
+        ListObjectsV2Response response =
+            s3.listObjectsV2(
+                request -> {
+                  request.continuationToken(token.get());
 
-  				var s3 = S3Client.create();
-  				closer.register(closeable(s3));
-  				ListObjectsV2Response response = s3.listObjectsV2(request -> {
+                  request.bucket(getBucket());
+                  request.prefix(prefix);
+                });
 
-  					request.continuationToken(token.get());
+        token.set(response.nextContinuationToken());
 
-  					request.bucket("data.bitquant.cloud");
-  					request.prefix(prefix);
-  				});
+        response.contents().stream()
+            .filter(t -> t.key().contains("/1d/"))
+            .filter(
+                t -> {
+                  return t.key().endsWith(".csv") || t.key().endsWith(".csv.gz");
+                })
+            .forEach(
+                t -> {
+                  PriceDataS3Object pdf = new PriceDataS3Object(t);
+                  if (pdf.getTicker() != null) {
+                    list.add(pdf);
+                  }
+                });
 
-  				token.set(response.nextContinuationToken());
+      } while (S.isNotBlank(token.get()));
 
-  				response.contents().stream().filter(t -> t.key().contains("/1d/")).filter(t -> {
+      return list;
+    }
+  }
 
-  					return t.key().endsWith(".csv") || t.key().endsWith(".csv.gz");
-  				}).forEach(t -> {
-  					list.add(t);
-  				});
+  public PriceTable createTableFromStorage(PriceDataS3Object obj) {
+    String url = String.format("s3://%s/%s", getBucket(), obj.getS3Object().key());
+    logger.atInfo().log("loading {}", url);
 
-  			} while (S.isNotBlank(token.get()));
+    String table =
+        String.format(
+            "temp_%s_%s", obj.getTicker().getSymbol().toLowerCase(), System.currentTimeMillis());
 
-  			return list;
-  		} catch (IOException e) {
-  			throw new BxException(e);
-  		}
-  	}
+    try (S3Client s3 = S3Client.create()) {
 
-  	public void testIt() {
+      Path tmp = Files.createTempFile("temp", ".csv");
+      tmp.toFile().delete();
+      s3.getObject(
+          x -> {
+            x.bucket(getBucket());
+            x.key(obj.getS3Object().key());
+          },
+          ResponseTransformer.toFile(tmp));
 
-  		var ds = getDataSource();
-  		DuckS3Extension.load(ds).useCredentialChain();
-  		listCrypto("data.bitquant.cloud").forEach(it -> {
+      String sql =
+          String.format(
+              "create table '%s' as (select * from '%s' order by date)",
+              table, tmp.toFile().getAbsolutePath());
 
-  			String url = toS3Url("data.bitquant.cloud", it.key());
+      JdbcClient.create(getDataSource()).sql(sql).update();
 
-  			String symbol = Splitter.on("/").splitToList(url).getLast().replace(".csv", "");
-  			String table = "s_"+symbol;
-  			PriceTable pt = null;//loadS3CSV(url, table);
+    } catch (IOException e) {
+      throw new BqException(e);
+    }
+    return new PriceTable(getDataSource(), table);
+  }
 
-  			PriceTable cbt = new CoinbaseDataProvider().dataSource(getDataSource()).newRequest(symbol).fetchIntoTable();
-
-  			int count = pt.insertMissing(cbt);
-
-  			System.out.println("Added "+count);
-  		//	pt.show();
-
-  		//	Sleep.sleepSecs(10);
-
-  		});
-  	}
-
-  	String toS3Url(String bucket, String key) {
-  		return String.format("s3://%s/%s", bucket, key);
-  	}
-  */
 }

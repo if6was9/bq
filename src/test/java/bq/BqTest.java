@@ -4,6 +4,7 @@ import bq.chart.Chart;
 import bq.provider.DataProviders;
 import bx.sql.PrettyQuery;
 import bx.sql.duckdb.DuckDataSource;
+import bx.util.Config;
 import bx.util.S;
 import bx.util.Slogger;
 import com.google.common.base.Preconditions;
@@ -166,8 +167,12 @@ public abstract class BqTest {
     return testData;
   }
   
+
   public String getTestS3BucketName() {
-	  return "test.bitquant.cloud";
+    String val = Config.get().get("BQ_BUCKET").orElse("test.bitquant.cloud");
+    Preconditions.checkState(
+        !val.equals("data.bitquant.cloud"), "cannot use data.bitquant.cloud in test");
+    return val;
   }
 
   @AfterEach
