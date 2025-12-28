@@ -26,7 +26,7 @@ import tools.jackson.databind.JsonNode;
 public class CoinbaseDataProvider extends CachingDataProvider {
 
   static Logger logger = Slogger.forEnclosingClass();
-  RateLimiter limit = RateLimiter.create(1.5);
+  RateLimiter limit = RateLimiter.create(3);
 
   public static final int MAX_PAGE_SIZE = 350;
   int pageSize = MAX_PAGE_SIZE;
