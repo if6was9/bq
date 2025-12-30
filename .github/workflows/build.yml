@@ -15,10 +15,20 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
 
       - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::550534291128:role/gha-if6was9-aws-access
+          aws-region: us-west-2
+
+      - name: Verify Authentication
+        run: aws sts get-caller-identity
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -44,5 +54,6 @@ jobs:
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
         run: |
+          mvn --version
           ./build.sh
           

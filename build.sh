@@ -7,8 +7,9 @@ if [[ "${CI}" = "true" ]]; then
     rm -f ./config.yml
 fi
 
+
 if [[ -z "${SKIP_JAVA}"  ]]; then
-./mvnw -B clean install
+mvn -B clean install
 fi
 
 if [[ -z "${SKIP_DOCKER}" ]]; then

@@ -1,6 +1,7 @@
 package bq.ta4j;
 
 import bx.util.BxException;
+import bx.util.Classes;
 import bx.util.Json;
 import bx.util.S;
 import bx.util.Slogger;
@@ -16,7 +17,6 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +103,12 @@ public class IndicatorBuilder {
           String shortName = toShortName(classInfo);
 
           Class<Indicator<?>> clazz = (Class<Indicator<?>>) Class.forName(className);
-          if (Modifier.isAbstract(clazz.getModifiers()) == false) {
+
+          if (clazz == null || clazz.getName().contains("$")) {
+            // exclude
+          } else if (Classes.isAbstract(clazz)) {
+            // ignore
+          } else {
             map.put(shortName, clazz);
           }
 
