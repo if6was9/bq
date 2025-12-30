@@ -10,7 +10,7 @@ public class S3StorageProviderTest extends BqTest {
   @Test
   public void testX() {
 
-    var s3 = new S3StorageProvider().bucket("data.bitquant.cloud").dataSource(getDataSource());
+    var s3 = new S3StorageProvider().bucket(getTestS3BucketName()).dataSource(getDataSource());
 
     Ticker ticker = Ticker.of("GOOG");
 

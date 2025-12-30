@@ -165,6 +165,10 @@ public abstract class BqTest {
     TestData testData = new TestData(getDataSource());
     return testData;
   }
+  
+  public String getTestS3BucketName() {
+	  return "test.bitquant.cloud";
+  }
 
   @AfterEach
   public void tearDown() {
