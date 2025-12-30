@@ -20,6 +20,15 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Configure AWS Credentials
+        uses: [aws-actions/configure-aws-credentials](https://github.com/aws-actions/configure-aws-credentials)@v4
+        with:
+          role-to-assume: arn:aws:iam::550534291128:user/bq-dev
+          aws-region: us-west-2
+
+      - name: Verify Authentication
+        run: aws sts get-caller-identity
+        
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
