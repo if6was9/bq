@@ -8,9 +8,9 @@ if [[ "${CI}" = "true" ]]; then
 fi
 
 
-./mvnw -B clean install
 
 
+mvn -B clean install
 if [[ "${CI}" = "true" ]]; then
 docker buildx build .  --platform linux/amd64,linux/arm64 --push --tag ghcr.io/if6was9/bq:latest
 else
