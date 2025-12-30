@@ -2,6 +2,7 @@
 
 set -e 
 
+env | sort
 
 if [[ "${CI}" = "true" ]]; then
     rm -f ./config.yml
