@@ -23,7 +23,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::550534291128:user/bq-dev
+          role-to-assume: arn:aws:iam::550534291128:role/gha-if6was9-aws-access
           aws-region: us-west-2
 
       - name: Verify Authentication
