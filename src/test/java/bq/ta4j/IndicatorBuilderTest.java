@@ -315,8 +315,6 @@ public class IndicatorBuilderTest extends BqTest {
     expected.add("pvo");
     expected.add("ravi");
     expected.add("real_body");
-    expected.add("recent_swing_high");
-    expected.add("recent_swing_low");
     expected.add("relative_volume_standard_deviation");
     expected.add("renko_down");
     expected.add("renko_up");
@@ -372,9 +370,49 @@ public class IndicatorBuilderTest extends BqTest {
     expected.add("williams_r");
     expected.add("wma");
     expected.add("zlema");
+    expected.add("zig_zag_pivot_high");
+
+    expected.add("zig_zag_pivot_low");
+    expected.add("elliott_invalidation_level");
+    expected.add("zig_zag_state");
+    expected.add("swing_point_marker");
+    expected.add("recent_zig_zag_swing_low");
+    expected.add("elliott_invalidation");
+    expected.add("elliott_wave_count");
+    expected.add("elliott_ratio");
+    expected.add("trend_line_support");
+    expected.add("elliott_projection");
+    expected.add("elliott_phase");
+    expected.add("elliott_confluence");
+    expected.add("elliott_channel");
+    expected.add("trend_line_resistance");
+    expected.add("recent_fractal_swing_low");
+    expected.add("elliott_scenario");
+    expected.add("recent_zig_zag_swing_high");
+    expected.add("recent_fractal_swing_high");
+    expected.add("elliott_swing");
 
     Set<String> found = new IndicatorBuilder().getIndicatorNameMap().keySet();
 
     Assertions.assertThat(found).containsAll(expected);
+
+    System.out.println(new IndicatorBuilder().getIndicatorNameMap().get("1"));
+    logger.atInfo().log("expected");
+    com.google.common.collect.Sets.difference(found, expected)
+        .forEach(
+            it -> {
+              System.out.println(String.format("expected.add(\"%s\");", it));
+            });
+    ;
+  }
+
+  @Test
+  public void testAnonymousInnerClass() {
+
+    Set<String> found = new IndicatorBuilder().getIndicatorNameMap().keySet();
+    for (int i = 0; i < 10; i++) {
+      // Anonymous inner classes get mapped with their names, which we do not want
+      Assertions.assertThat(found).doesNotContain(Integer.toString(i));
+    }
   }
 }
