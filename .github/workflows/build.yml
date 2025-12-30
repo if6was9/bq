@@ -54,6 +54,5 @@ jobs:
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
         run: |
-          mvn --version
           ./build.sh
           

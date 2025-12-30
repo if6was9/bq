@@ -8,7 +8,7 @@ if [[ "${CI}" = "true" ]]; then
 fi
 
 if [[ -z "${SKIP_JAVA}"  ]]; then
-mvn -B clean install
+./mvn -B clean install
 fi
 
 if [[ -z "${SKIP_DOCKER}" ]]; then
