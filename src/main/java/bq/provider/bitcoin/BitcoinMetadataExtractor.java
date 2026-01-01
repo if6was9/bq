@@ -1,4 +1,4 @@
-package bq.provider;
+package bq.provider.bitcoin;
 
 import bx.sql.duckdb.DuckTable;
 import bx.util.S;
@@ -77,9 +77,9 @@ public class BitcoinMetadataExtractor {
   }
 
   public void processBlock(int height) {
-	  if (!this.table.exists()) {
-		  createTable(table.getName());
-	  }
+    if (!this.table.exists()) {
+      createTable(table.getName());
+    }
     processBlock(client.getBlockHash(height));
   }
 

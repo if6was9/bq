@@ -1,8 +1,8 @@
 package bq;
 
-import bq.provider.AmazonBitcoinClient;
-import bq.provider.BitcoinClient;
-import bq.provider.BitcoinMetadataExtractor;
+import bq.provider.bitcoin.AmazonBitcoinClient;
+import bq.provider.bitcoin.BitcoinClient;
+import bq.provider.bitcoin.BitcoinMetadataExtractor;
 import bx.sql.Db;
 import bx.util.Config;
 import bx.util.Slogger;

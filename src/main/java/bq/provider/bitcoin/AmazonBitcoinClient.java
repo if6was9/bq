@@ -1,4 +1,4 @@
-package bq.provider;
+package bq.provider.bitcoin;
 
 import bx.util.Json;
 import bx.util.S;

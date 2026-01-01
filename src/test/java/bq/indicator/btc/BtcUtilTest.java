@@ -106,18 +106,30 @@ public class BtcUtilTest {
   @Test
   public void testBlockReward() {
 
-    Assertions.assertThat(BtcUtil.getBlockReward(0)).isEqualByComparingTo("0");
-    Assertions.assertThat(BtcUtil.getBlockReward(1)).isEqualByComparingTo("50");
-    Assertions.assertThat(BtcUtil.getBlockReward(2)).isEqualByComparingTo("25");
-    Assertions.assertThat(BtcUtil.getBlockReward(3)).isEqualByComparingTo("12.5");
-    Assertions.assertThat(BtcUtil.getBlockReward(4)).isEqualByComparingTo("6.25");
-    Assertions.assertThat(BtcUtil.getBlockReward(5)).isEqualByComparingTo("3.125");
-    Assertions.assertThat(BtcUtil.getBlockReward(6)).isEqualByComparingTo("1.56250");
-    Assertions.assertThat(BtcUtil.getBlockReward(7)).isEqualByComparingTo("0.781250");
-    Assertions.assertThat(BtcUtil.getBlockReward(-1)).isEqualByComparingTo("0");
+    // https://en.bitcoin.it/wiki/Controlled_supply
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(0)).isEqualByComparingTo("0");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(1)).isEqualByComparingTo("50");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(2)).isEqualByComparingTo("25");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(3)).isEqualByComparingTo("12.5");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(4)).isEqualByComparingTo("6.25");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(5)).isEqualByComparingTo("3.125");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(6)).isEqualByComparingTo("1.56250");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(7)).isEqualByComparingTo("0.781250");
 
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(10)).isEqualByComparingTo("0.09765625");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(14)).isEqualByComparingTo("0.00610351");
+
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(19)).isEqualByComparingTo("0.00019073");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(20)).isEqualByComparingTo("0.00009536");
+
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(33)).isEqualByComparingTo("0.00000001");
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(34)).isEqualByComparingTo("0.0");
+
+    Assertions.assertThat(BtcUtil.getBlockRewardForEpoch(-1)).isEqualByComparingTo("0");
+
+    Assertions.assertThat(BtcUtil.getBlockRewardForBlock(0)).isEqualByComparingTo("50");
     for (int i = 1; i < 15; i++) {
-      logger.atInfo().log("epoch={} reward={}", i, BtcUtil.getBlockReward(i));
+      logger.atInfo().log("epoch={} reward={}", i, BtcUtil.getBlockRewardForEpoch(i));
     }
 
     Assertions.assertThat(BtcUtil.getBlockReward(LocalDate.now())).isEqualByComparingTo("3.125");
@@ -127,5 +139,15 @@ public class BtcUtilTest {
         .isEqualByComparingTo("0");
     Assertions.assertThat(BtcUtil.getBlockReward(LocalDate.of(2000, 1, 2)))
         .isEqualByComparingTo("0");
+  }
+
+  @Test
+  public void testIt() {
+
+    Assertions.assertThat(BtcUtil.getEpoch(420000)).isEqualTo(3);
+    Assertions.assertThat(BtcUtil.getEpoch(210000)).isEqualTo(2);
+    Assertions.assertThat(BtcUtil.getEpoch(209999)).isEqualTo(1);
+    Assertions.assertThat(BtcUtil.getEpoch(0)).isEqualTo(1);
+    Assertions.assertThat(BtcUtil.getEpoch(1)).isEqualTo(1);
   }
 }

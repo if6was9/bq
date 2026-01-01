@@ -4,6 +4,7 @@ import bx.util.Slogger;
 import com.google.common.collect.Lists;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -51,7 +52,7 @@ public class BtcUtil {
     return (int) ChronoUnit.DAYS.between(GENESIS_DATE, d);
   }
 
-  public static BigDecimal getBlockReward(int epoch) {
+  public static BigDecimal getBlockRewardForEpoch(int epoch) {
     if (epoch < 1) {
       return BigDecimal.ZERO;
     }
@@ -59,8 +60,12 @@ public class BtcUtil {
     // block reward in first epoch (immediately after genesis) was 50
     BigDecimal firstEpochBlockReward = new BigDecimal(50);
 
-    return firstEpochBlockReward.multiply(
-        new BigDecimal(2).pow((epoch - 1) * -1, MathContext.DECIMAL64));
+    BigDecimal bd =
+        firstEpochBlockReward.multiply(
+            new BigDecimal(2).pow((epoch - 1) * -1, MathContext.DECIMAL64));
+    bd = bd.setScale(8, RoundingMode.DOWN);
+
+    return bd;
   }
 
   public static LocalDate getStartOfEpoch(int i) {
@@ -74,7 +79,7 @@ public class BtcUtil {
     if (d == null) {
       return BigDecimal.ZERO;
     }
-    return getBlockReward(getEpoch(d));
+    return getBlockRewardForEpoch(getEpoch(d));
   }
 
   public static int getDayOfEpoch(LocalDate d) {
@@ -86,6 +91,17 @@ public class BtcUtil {
     LocalDate startOfEpoch = getStartOfEpoch(epoch);
 
     return (int) ChronoUnit.DAYS.between(startOfEpoch, d);
+  }
+
+  public static int getEpoch(int blockHeight) {
+    int x = blockHeight / 210000;
+
+    return x + 1;
+  }
+
+  public static BigDecimal getBlockRewardForBlock(int height) {
+    int epoch = getEpoch(height);
+    return getBlockRewardForEpoch(epoch);
   }
 
   public static int getEpoch(LocalDate d) {
