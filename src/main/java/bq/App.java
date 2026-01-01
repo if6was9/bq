@@ -2,7 +2,7 @@ package bq;
 
 import bq.provider.bitcoin.AmazonBitcoinClient;
 import bq.provider.bitcoin.BitcoinClient;
-import bq.provider.bitcoin.BitcoinMetadataExtractor;
+import bq.provider.bitcoin.BitcoinIndexer;
 import bx.sql.Db;
 import bx.util.Config;
 import bx.util.Slogger;
@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
+import tools.jackson.databind.JsonNode;
 
 @Command(
     name = "bq",
@@ -68,26 +69,24 @@ public class App {
   @Command(name = "bcfetch", description = "update data")
   void fetchBlockChain() {
 
+    DataSource ds = Db.get().getDataSource();
     BitcoinClient client = AmazonBitcoinClient.create();
 
-    var info = client.getBlockChainInfo();
+    JsonNode info = client.getBlockChainInfo();
+    int blockCount = info.path("blocks").asInt();
+    BitcoinIndexer bi = new BitcoinIndexer().client(client).dataSource(ds).createTables();
+    for (int i = 0; i < blockCount; i++) {
 
-    final int lastBlock = info.path("blocks").asInt() - 1;
+      if (bi.hasBlockInDb(i)) {
+        logger.atInfo().log("already have block: {}", i);
+      } else {
+        bi.processBlock(i);
 
-    DataSource ds = Db.get().getDataSource();
-
-    BitcoinMetadataExtractor bme =
-        new BitcoinMetadataExtractor()
-            .client(AmazonBitcoinClient.create())
-            .dataSource(ds)
-            .table("block");
-
-    bme.processBlock(lastBlock);
-
-    while (bme.hasPrev()) {
-      bme.processPrev();
+        if (i % 100 == 0) {
+          bi.getBlockTable().show();
+          bi.getTxTable().show();
+        }
+      }
     }
-
-    bme.getTable().show();
   }
 }
