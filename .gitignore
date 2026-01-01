@@ -33,3 +33,7 @@ build/
 .vscode/
 
 /config.yml
+*.duckdb
+*.ddb
+*.ddb.wal
+*.duckdb.wal
