@@ -1,4 +1,4 @@
-package bq.provider;
+package bq.provider.bitcoin;
 
 import bx.util.Json;
 import tools.jackson.databind.JsonNode;
@@ -48,6 +48,14 @@ public abstract class BitcoinClient {
 
   public String getBlockHash(int block) {
     return invoke("getblockhash", block).asString("");
+  }
+
+  public JsonNode getRawTransaction(String hash) {
+
+    ArrayNode an = Json.createArrayNode();
+    an.add(hash);
+    an.add(true);
+    return invoke("getrawtransaction", an);
   }
 
   public JsonNode getBlock(String hash, int verbosity) {
