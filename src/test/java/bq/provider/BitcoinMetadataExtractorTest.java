@@ -23,7 +23,7 @@ public class BitcoinMetadataExtractorTest extends BqTest {
 
     int count = 0;
     bme.processBlock(lastBlock);
-
+   
     while (bme.hasPrev() && count++ < 5) {
       bme.processPrev();
     }
