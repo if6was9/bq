@@ -1,10 +1,14 @@
 package bq;
 
+import bq.provider.AmazonBitcoinClient;
+import bq.provider.BitcoinClient;
+import bq.provider.BitcoinMetadataExtractor;
 import bx.sql.Db;
 import bx.util.Config;
 import bx.util.Slogger;
 import com.google.common.base.Preconditions;
 import java.util.List;
+import javax.sql.DataSource;
 import org.slf4j.Logger;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -64,5 +68,31 @@ public class App {
           String[] countryCodes) {
     initConfig();
     System.out.println("update");
+  }
+
+  @Command(name = "bcfetch", description = "update data")
+  void fetchBlockChain() {
+
+    BitcoinClient client = AmazonBitcoinClient.create();
+
+    var info = client.getBlockChainInfo();
+
+    final int lastBlock = info.path("blocks").asInt() - 1;
+
+    DataSource ds = Db.get().getDataSource();
+
+    BitcoinMetadataExtractor bme =
+        new BitcoinMetadataExtractor()
+            .client(AmazonBitcoinClient.create())
+            .dataSource(ds)
+            .table("block");
+
+    bme.processBlock(lastBlock);
+
+    while (bme.hasPrev()) {
+      bme.processPrev();
+    }
+
+    bme.getTable().show();
   }
 }
