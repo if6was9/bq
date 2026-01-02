@@ -1,6 +1,7 @@
 package bq.provider.bitcoin;
 
 import bx.util.Json;
+import java.util.UUID;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
@@ -76,7 +77,7 @@ public abstract class BitcoinClient {
     }
 
     request.set("params", params);
-
+    request.put("id", UUID.randomUUID().toString());
     return request;
   }
 }
