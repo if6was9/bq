@@ -45,7 +45,7 @@ public class BasicBitcoinClientTest extends BqTest {
     try {
       client.invoke("invalid_method");
     } catch (BitcoinClientException e) {
-      Assertions.assertThat(e.getHttpStatus()).isEqualTo(200);
+      Assertions.assertThat(e.getHttpStatus().orElse(-1)).isEqualTo(200);
       Assertions.assertThat(e.getCode()).isEqualTo(-32601);
     }
   }
