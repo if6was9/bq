@@ -8,6 +8,7 @@ public class BasicBitcoinClientTest extends BqTest {
   @Test
   public void testIt() {
 
+
     BitcoinClient c = BasicBitcoinClient.create();
 
     System.out.println(c.getBlockChainInfo().toPrettyString());
