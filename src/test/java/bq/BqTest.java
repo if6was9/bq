@@ -45,7 +45,7 @@ public abstract class BqTest {
   }
 
   @BeforeEach
-  public void setup() {
+  public final void setupBqTest() {
 
     String name = System.getProperty("app.name");
     if (!S.notBlank(name).orElse("").equals("bq")) {

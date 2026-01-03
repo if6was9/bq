@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
 import tools.jackson.databind.JsonNode;
 
 public class BitcoinIndexer {
@@ -26,6 +27,7 @@ public class BitcoinIndexer {
   DuckTable blockTable;
   DuckTable txTable;
   DuckTable txInputTable;
+  DuckTable txOutputTable;
 
   Cache<Integer, String> blockHeightCache = CacheBuilder.newBuilder().maximumSize(1000).build();
 
@@ -33,6 +35,7 @@ public class BitcoinIndexer {
     this.blockTable = DuckTable.of(dataSource, "block");
     this.txTable = DuckTable.of(dataSource, "tx");
     this.txInputTable = DuckTable.of(dataSource, "tx_input");
+    this.txOutputTable = DuckTable.of(dataSource, "tx_output");
     if (!blockTable.exists()) {
       this.blockTable = createBlockTable();
     }
@@ -41,6 +44,9 @@ public class BitcoinIndexer {
     }
     if (!txInputTable.exists()) {
       this.txInputTable = createTxInputTable();
+    }
+    if (!txOutputTable.exists()) {
+      this.txOutputTable = createTxOutputTable();
     }
     return this;
   }
@@ -56,19 +62,35 @@ public class BitcoinIndexer {
     return this;
   }
 
+  public DuckTable createTxOutputTable() {
+    DuckTable t = DuckTable.of(dataSource, "tx_output");
+
+    String sql =
+        """
+        create table tx_output (
+        txid varchar(64),
+        blockhash varchar(64),
+        n int,
+        value double,
+        address varchar(64)
+        )
+        """;
+    t.sql(sql).update();
+
+    return t;
+  }
+
   public DuckTable createTxInputTable() {
     DuckTable t = DuckTable.of(dataSource, "tx_input");
 
     String sql =
         """
         create table tx_input (
-
-        	vin_txid varchar(64),
-        	vin_coinbase varchar(200),
-        	vin_vout int,
-        	vout_txid varchar (64),
-        	vout_blockhash varchar(64)
-
+        txid varchar (64),
+        	blockhash varchar(64),
+        	from_txid varchar(64),
+        	from_n int,
+        	from_coinbase varchar(200)
         )
         """;
     t.sql(sql).update();
@@ -86,6 +108,10 @@ public class BitcoinIndexer {
         	blockhash varchar(64),
         	value double,
         	fee double,
+        	locktime int64,
+        	weight int32,
+        	size int,
+        	version int,
         	coinbase varchar(200)
         )
         """;
@@ -193,27 +219,25 @@ public class BitcoinIndexer {
 
   Optional<String> getBlockHash(int height) {
     Optional<String> hash = S.notBlank(blockHeightCache.getIfPresent(height));
-    if (hash.isPresent()) {
+    if (!hash.isPresent()) {
 
-      return hash;
+      hash = S.notEmpty(getClient().getBlockHash(height));
+      if (hash.isPresent()) {
+        blockHeightCache.put(height, hash.get());
+      }
     }
-    hash = S.notEmpty(getClient().getBlockHash(height));
-    if (hash.isPresent()) {
-      blockHeightCache.put(height, hash.get());
-    }
+
+    logger.atInfo().log("{}: {}", height, hash);
+
     return hash;
   }
 
-  /*
-   * Optional<String> getBlockHashx(int height) { List<Object> x = blockTable
-   * .sql("select hash from '" + blockTable.getName() +
-   * "' where height=:height limit 1") .param("height", height) .query()
-   * .singleColumn(); if (x.isEmpty()) { return Optional.empty(); } return
-   * Optional.ofNullable((String) x.getFirst()); }
-   */
-
   public DuckTable getBlockTable() {
     return this.blockTable;
+  }
+
+  public DuckTable getTxOutputTable() {
+    return this.txOutputTable;
   }
 
   public DuckTable getTxInputTable() {
@@ -228,29 +252,46 @@ public class BitcoinIndexer {
 
     String blockHash = blockNode.path("hash").asString();
 
-    logger.atInfo().log("writing vout transactions for {}", blockHash);
+    logger.atInfo().log("writing transactions for {}", blockHash);
 
     Preconditions.checkArgument(blockNode.has("hash"));
     String sql =
         """
-insert into tx (txid,blockhash,fee,value,coinbase) values (:txid,:blockhash,:fee,:value,:coinbase) ON CONFLICT(txid)
+insert into tx (txid,blockhash,fee,value,coinbase,locktime,weight,size,version) values (:txid,:blockhash,:fee,:value,:coinbase,
+:locktime,
+:weight,
+:size,
+:version
+
+) ON CONFLICT(txid)
 
 DO UPDATE
 set blockhash=excluded.blockhash,
 fee = excluded.fee,
 value = excluded.value,
-coinbase = excluded.coinbase
+coinbase = excluded.coinbase,
+locktime = excluded.locktime,
+version = excluded.version,
+weight = excluded.weight,
+size = excluded.size
 """;
 
-    JdbcClient jdbc = JdbcClient.create(dataSource);
+    String insertTxOutputSql =
+        """
+        insert into tx_output
+        	(txid,blockhash,n,value,address) values (:txid,:blockhash,:n,:value,:address)
+        """;
 
+    JdbcClient jdbc = JdbcClient.create(dataSource);
+    StatementSpec insertTxOutputSPec = jdbc.sql(insertTxOutputSql);
+    StatementSpec insertTxSpec = jdbc.sql(sql);
     blockNode
         .path("tx")
         .forEach(
             tx -> {
               AtomicReference<BigDecimal> txValue =
                   new AtomicReference<BigDecimal>(new BigDecimal(0));
-
+              String txid = tx.path("txid").asString();
               tx.path("vout")
                   .forEach(
                       vout -> {
@@ -274,17 +315,45 @@ coinbase = excluded.coinbase
                         //        "type" : "witness_v1_taproot"
                         //      }
                         //   }
+                        double value = vout.path("value").asDouble(0d);
+                        int n = vout.path("n").asInt(0);
+                        String address = vout.path("address").asString(null);
+
+                        insertTxOutputSPec
+                            .param("blockhash", blockHash)
+                            .param("txid", txid)
+                            .param("n", n)
+                            .param("value", value)
+                            .param("address", address)
+                            .update();
 
                         BigDecimal total =
                             txValue.get().add(vout.path("value").asDecimal(new BigDecimal(0)));
                         txValue.set(total);
                       });
 
-              String txid = tx.path("txid").asString();
-
               double fee = tx.path("fee").asDouble(0d);
-
+              int locktime = tx.path("locktime").asInt(0);
+              int weight = tx.path("weight").asInt(0);
+              int size = tx.path("size").asInt(0);
+              int version = tx.path("version").asInt(0);
               AtomicReference<String> coinbaseRef = new AtomicReference<String>(null);
+
+              String txinputSql =
+                  """
+
+insert into tx_input (txid,blockhash,from_coinbase,from_n, from_txid) values
+(
+	:txid,
+	:blockhash,
+	:from_coinbase,
+	:from_n,
+	:from_txid
+	)
+
+""";
+              StatementSpec txInputSpec = jdbc.sql(txinputSql);
+
               tx.path("vin")
                   .forEach(
                       vin -> {
@@ -298,32 +367,24 @@ coinbase = excluded.coinbase
 
                         int vout = vin.path("vout").asInt(0);
 
-                        String txinputSql =
-                            """
-
-insert into tx_input (vin_txid,vin_coinbase,vout_txid,vout_blockhash,vin_vout) values
-(
-		:vin_txid,
-		:vin_coinbase,
-		:vout_txid,
-		:vout_blockhash,
-		:vin_vout)
-
-""";
-
                         // also has txwitness array which we don't care about for now
 
-                        jdbc.sql(txinputSql)
-                            .param("vout_txid", txid)
-                            .param("vout_blockhash", blockHash)
-                            .param("vin_txid", inputTxId)
-                            .param("vin_coinbase", coinbase)
-                            .param("vin_vout", vout)
-                            .update();
+                        int c =
+                            txInputSpec
+                                .param("txid", txid)
+                                .param("blockhash", blockHash)
+                                .param("from_txid", inputTxId)
+                                .param("from_coinbase", coinbase)
+                                .param("from_n", vout)
+                                .update();
                       });
-              jdbc.sql(sql)
+              insertTxSpec
                   .param("txid", txid)
                   .param("fee", fee)
+                  .param("locktime", locktime)
+                  .param("weight", weight)
+                  .param("size", size)
+                  .param("version", version)
                   .param("value", txValue.get())
                   .param("blockhash", blockHash)
                   .param("coinbase", coinbaseRef.get())
@@ -390,7 +451,7 @@ insert into tx_input (vin_txid,vin_coinbase,vout_txid,vout_blockhash,vin_vout) v
     String sql =
         """
 
-insert into %s (time,mediantime,hash,height,value,nonce,version,versionhex,previousblockhash,nextblockhash,merkleroot,
+insert into block (time,mediantime,hash,height,value,nonce,version,versionhex,previousblockhash,nextblockhash,merkleroot,
 difficulty,chainwork,bits,ntx,strippedsize,size,weight) values
 (:time,:mediantime,:hash,:height,:value,:nonce,:version,:versionhex,:previousblockhash,:nextblockhash,:merkleroot,
 :difficulty,
@@ -403,7 +464,6 @@ difficulty,chainwork,bits,ntx,strippedsize,size,weight) values
 )
 
 """;
-    sql = String.format(sql, blockTable.getName());
 
     blockTable
         .sql(sql)

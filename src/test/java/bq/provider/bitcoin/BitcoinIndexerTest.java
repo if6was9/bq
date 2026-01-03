@@ -4,6 +4,7 @@ import bq.BqTest;
 import bx.util.Slogger;
 import java.util.Optional;
 import javax.sql.DataSource;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import tools.jackson.databind.JsonNode;
@@ -49,6 +50,7 @@ public class BitcoinIndexerTest extends BqTest {
 
     for (int i = 0; i < 5; i++) {
 
+      Assertions.assertThat(bi.getBlockHash(i)).isPresent();
       if (bi.hasBlockInDb(i)) {
         logger.atInfo().log("already have block: {}", i);
 
