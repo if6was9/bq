@@ -63,7 +63,17 @@ public abstract class BitcoinClient {
     return invoke("getblock", hash, verbosity);
   }
 
-  private JsonNode extractResult(JsonNode response) {
+  protected JsonNode extractResult(JsonNode response) {
+
+    JsonNode errorNode = response.path("error");
+    if (errorNode.isObject()) {
+
+      int code = errorNode.path("code").asInt(0);
+      String message = errorNode.path("message").asString("");
+
+      throw new BitcoinClientException(200, message, code);
+    }
+
     return response.path("result");
   }
 

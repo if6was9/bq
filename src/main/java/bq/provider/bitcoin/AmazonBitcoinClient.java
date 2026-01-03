@@ -83,7 +83,7 @@ public class AmazonBitcoinClient extends BitcoinClient {
     return rbe;
   }
 
-  public tools.jackson.databind.JsonNode invokeRaw(JsonNode request) {
+  protected tools.jackson.databind.JsonNode invokeRaw(JsonNode request) {
 
     byte[] body = request.toString().getBytes();
 
@@ -108,14 +108,12 @@ public class AmazonBitcoinClient extends BitcoinClient {
 
     if (!response.isSuccess()) {
 
-      String message =
-          String.format(
-              "code=%s message=%s id=%s",
-              j.path("error").path("code").asInt(-1),
-              j.path("error").path("message").asString(null),
-              j.path("id").asString(null));
-      throw new BitcoinClientException(response.getStatus(), message);
+      if (j.isObject()) {
+        extractResult(j);
+      }
+      throw new BitcoinClientException(response.getStatus());
     }
+
     return j;
   }
 }

@@ -21,7 +21,7 @@ import tools.jackson.databind.node.NullNode;
 
 public class BasicBitcoinClient extends BitcoinClient {
 
-  Logger logger = Slogger.forEnclosingClass();
+  static Logger logger = Slogger.forEnclosingClass();
 
   String url;
   String username;
@@ -40,6 +40,7 @@ public class BasicBitcoinClient extends BitcoinClient {
     String username = cfg.get("BITCOIN_RPC_USERNAME").orElse(null);
     String password = cfg.get("BITCOIN_RPC_PASSWORD").orElse(null);
 
+    logger.atInfo().log("using url: {}", url);
     if (S.isBlank(username)) {
       File bitcoinCookieFile = new File(System.getProperty("user.home"), ".bitcoin/.cookie");
       if (bitcoinCookieFile.exists()) {
@@ -64,6 +65,7 @@ public class BasicBitcoinClient extends BitcoinClient {
     Stopwatch sw = Stopwatch.createStarted();
     int status = -1;
     try {
+
       HttpRequestWithBody request = Unirest.post(url);
 
       if (S.isNotBlank(username)) {
@@ -74,6 +76,8 @@ public class BasicBitcoinClient extends BitcoinClient {
 
       status = response.getStatus();
       if (!response.isSuccess()) {
+
+        extractResult(response.getBody()); // this will throw
 
         throw new BitcoinClientException(response.getStatus());
       }
