@@ -3,9 +3,6 @@ package bq.provider.bitcoin;
 import bx.util.Json;
 import bx.util.Slogger;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Suppliers;
-import java.net.URI;
-import java.util.function.Supplier;
 import kong.unirest.core.HttpResponse;
 import kong.unirest.core.RequestBodyEntity;
 import kong.unirest.core.Unirest;
@@ -18,8 +15,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sts.StsClient;
 import tools.jackson.databind.JsonNode;
 
 public class AmazonBitcoinClient extends BitcoinClient {
@@ -31,11 +26,10 @@ public class AmazonBitcoinClient extends BitcoinClient {
   public static final String DEFAULT_REGION = "us-east-1";
   public static final String SERVICE_SIGNING_NAME = "managedblockchain";
 
-  static Supplier<AwsCredentialsProvider> credentialsSupplier =
-      Suppliers.memoize(
-          () -> {
-            return DefaultCredentialsProvider.builder().build();
-          });
+  static final AwsCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER =
+      DefaultCredentialsProvider.builder().build();
+
+  AwsCredentialsProvider credentialsProvider = DEFAULT_CREDENTIALS_PROVIDER;
 
   private AmazonBitcoinClient() {}
 
@@ -60,12 +54,7 @@ public class AmazonBitcoinClient extends BitcoinClient {
 
     byte[] val = (byte[]) rbe.getBody().get().uniPart().getValue();
 
-    System.out.println(StsClient.create().getCallerIdentity().arn());
-    System.out.println(
-        StsClient.builder().region(Region.US_EAST_1).build().getCallerIdentity().arn());
-    System.out.println(
-        StsClient.builder().region(Region.US_WEST_2).build().getCallerIdentity().arn());
-    AwsCredentialsIdentity id = credentialsSupplier.get().resolveCredentials();
+    AwsCredentialsIdentity id = credentialsProvider.resolveCredentials();
 
     // 3. Execute the signing process
     var signedResult =
@@ -96,11 +85,10 @@ public class AmazonBitcoinClient extends BitcoinClient {
 
   public tools.jackson.databind.JsonNode invokeRaw(JsonNode request) {
 
-    URI uri = URI.create(DEFAULT_ENDPOINT);
-
     byte[] body = request.toString().getBytes();
 
-    RequestBodyEntity rbe = Unirest.post(uri.toString()).contentType("application/json").body(body);
+    RequestBodyEntity rbe =
+        Unirest.post(DEFAULT_ENDPOINT).contentType("application/json").body(body);
 
     RequestBodyEntity rbe2 = injectHeaders(rbe);
 

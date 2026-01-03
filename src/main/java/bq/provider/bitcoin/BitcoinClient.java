@@ -8,7 +8,7 @@ import tools.jackson.databind.node.ObjectNode;
 
 public abstract class BitcoinClient {
 
-  public abstract JsonNode invokeRaw(JsonNode n);
+  protected abstract JsonNode invokeRaw(JsonNode n);
 
   public JsonNode invoke(String method, ArrayNode params) {
     ObjectNode n = createRequest(method, params);
@@ -48,7 +48,7 @@ public abstract class BitcoinClient {
   }
 
   public String getBlockHash(int block) {
-    return invoke("getblockhash", block).asString("");
+    return invoke("getblockhash", block).asString(null);
   }
 
   public JsonNode getRawTransaction(String hash) {

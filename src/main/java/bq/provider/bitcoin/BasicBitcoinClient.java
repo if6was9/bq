@@ -1,9 +1,16 @@
 package bq.provider.bitcoin;
 
+import bq.BqException;
 import bx.util.Config;
 import bx.util.S;
 import bx.util.Slogger;
+import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
+import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import kong.unirest.core.HttpRequestWithBody;
 import kong.unirest.core.HttpResponse;
@@ -29,29 +36,30 @@ public class BasicBitcoinClient extends BitcoinClient {
   public static BitcoinClient create() {
     Config cfg = Config.get();
 
-    BasicBitcoinClient client =
-        new BasicBitcoinClient(
-            cfg.get("BITCOIN_RPC_URL")
-                .orElseThrow(
-                    () -> {
-                      return new IllegalStateException("BITCOIN_RPC_URL not set");
-                    }),
-            cfg.get("BITCOIN_RPC_USERNAME")
-                .orElseThrow(
-                    () -> {
-                      return new IllegalStateException("BITCOIN_RPC_USERNAME not set");
-                    }),
-            cfg.get("BITCOIN_RPC_PASSWORD")
-                .orElseThrow(
-                    () -> {
-                      return new IllegalStateException("BITCOIN_RPC_PASSWORD not set");
-                    }));
+    String url = cfg.get("BITCOIN_RPC_URL").orElse("http://localhost:8332");
+    String username = cfg.get("BITCOIN_RPC_USERNAME").orElse(null);
+    String password = cfg.get("BITCOIN_RPC_PASSWORD").orElse(null);
 
+    if (S.isBlank(username)) {
+      File bitcoinCookieFile = new File(System.getProperty("user.home"), ".bitcoin/.cookie");
+      if (bitcoinCookieFile.exists()) {
+        try {
+          String line =
+              Files.asCharSource(bitcoinCookieFile, StandardCharsets.UTF_8).readFirstLine();
+          List<String> parts = Splitter.on(":").splitToList(line);
+          username = parts.get(0);
+          password = parts.get(1);
+        } catch (IOException e) {
+          throw new BqException(e);
+        }
+      }
+    }
+    BasicBitcoinClient client = new BasicBitcoinClient(url, username, password);
     return client;
   }
 
   @Override
-  public JsonNode invokeRaw(JsonNode n) {
+  protected JsonNode invokeRaw(JsonNode n) {
 
     Stopwatch sw = Stopwatch.createStarted();
     int status = -1;
