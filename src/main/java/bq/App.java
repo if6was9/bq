@@ -100,4 +100,28 @@ public class App {
       }
     }
   }
+
+  @Command(name = "bcfetch", description = "update data")
+  void fetchBlockChain() {
+
+    DataSource ds = Db.get().getDataSource();
+    BitcoinClient client = AmazonBitcoinClient.create();
+
+    JsonNode info = client.getBlockChainInfo();
+    int blockCount = info.path("blocks").asInt();
+    BitcoinIndexer bi = new BitcoinIndexer().client(client).dataSource(ds).createTables();
+    for (int i = 0; i < blockCount; i++) {
+
+      if (bi.hasBlockInDb(i)) {
+        logger.atInfo().log("already have block: {}", i);
+      } else {
+        bi.processBlock(i);
+
+        if (i % 100 == 0) {
+          bi.getBlockTable().show();
+          bi.getTxTable().show();
+        }
+      }
+    }
+  }
 }
