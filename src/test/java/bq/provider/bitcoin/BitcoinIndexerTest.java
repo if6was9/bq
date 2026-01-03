@@ -1,11 +1,9 @@
 package bq.provider.bitcoin;
 
 import bq.BqTest;
-import bx.sql.duckdb.DuckDataSource;
 import bx.util.Slogger;
 import java.util.Optional;
 import javax.sql.DataSource;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -69,8 +67,7 @@ public class BitcoinIndexerTest extends BqTest {
   @Test
   public void testRecentBlocks() {
 
-	  
-    DataSource ds =  getDataSource();
+    DataSource ds = getDataSource();
     BitcoinClient client = AmazonBitcoinClient.create();
 
     int startBlock = 900000;

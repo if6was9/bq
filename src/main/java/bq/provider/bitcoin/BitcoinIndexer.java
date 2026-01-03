@@ -17,7 +17,6 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.core.simple.JdbcClient.StatementSpec;
-
 import tools.jackson.databind.JsonNode;
 
 public class BitcoinIndexer {
@@ -47,7 +46,7 @@ public class BitcoinIndexer {
       this.txInputTable = createTxInputTable();
     }
     if (!txOutputTable.exists()) {
-    	this.txOutputTable = createTxOutputTable();
+      this.txOutputTable = createTxOutputTable();
     }
     return this;
   }
@@ -64,22 +63,23 @@ public class BitcoinIndexer {
   }
 
   public DuckTable createTxOutputTable() {
-	    DuckTable t = DuckTable.of(dataSource, "tx_output");
+    DuckTable t = DuckTable.of(dataSource, "tx_output");
 
-	    String sql =
-	        """
-	        create table tx_output (
-	    		  txid varchar(64),
-	    		  blockhash varchar(64),
-	    		  n int,
-	    		  value double,
-	    		  address varchar(64)
-	        )
-	        """;
-	    t.sql(sql).update();
+    String sql =
+        """
+        create table tx_output (
+        txid varchar(64),
+        blockhash varchar(64),
+        n int,
+        value double,
+        address varchar(64)
+        )
+        """;
+    t.sql(sql).update();
 
-	    return t;
-	  }
+    return t;
+  }
+
   public DuckTable createTxInputTable() {
     DuckTable t = DuckTable.of(dataSource, "tx_input");
 
@@ -221,26 +221,25 @@ public class BitcoinIndexer {
     Optional<String> hash = S.notBlank(blockHeightCache.getIfPresent(height));
     if (!hash.isPresent()) {
 
-    hash = S.notEmpty(getClient().getBlockHash(height));
-    if (hash.isPresent()) {
-      blockHeightCache.put(height, hash.get());
+      hash = S.notEmpty(getClient().getBlockHash(height));
+      if (hash.isPresent()) {
+        blockHeightCache.put(height, hash.get());
+      }
     }
-    }
-    
-    logger.atInfo().log("{}: {}",height,hash);
-    
+
+    logger.atInfo().log("{}: {}", height, hash);
+
     return hash;
   }
-
-
 
   public DuckTable getBlockTable() {
     return this.blockTable;
   }
 
   public DuckTable getTxOutputTable() {
-	  return this.txOutputTable;
+    return this.txOutputTable;
   }
+
   public DuckTable getTxInputTable() {
     return this.txInputTable;
   }
@@ -277,13 +276,12 @@ weight = excluded.weight,
 size = excluded.size
 """;
 
+    String insertTxOutputSql =
+        """
+        insert into tx_output
+        	(txid,blockhash,n,value,address) values (:txid,:blockhash,:n,:value,:address)
+        """;
 
-    
-    String insertTxOutputSql = """
-    		insert into tx_output
-    			(txid,blockhash,n,value,address) values (:txid,:blockhash,:n,:value,:address)
-    		""";
-    
     JdbcClient jdbc = JdbcClient.create(dataSource);
     StatementSpec insertTxOutputSPec = jdbc.sql(insertTxOutputSql);
     StatementSpec insertTxSpec = jdbc.sql(sql);
@@ -317,23 +315,22 @@ size = excluded.size
                         //        "type" : "witness_v1_taproot"
                         //      }
                         //   }
-                    	  double value = vout.path("value").asDouble(0d);
-                    	  int n = vout.path("n").asInt(0);
-                    	  String address = vout.path("address").asString(null);
-                    	  
-                    	  insertTxOutputSPec
-                    	  .param("blockhash",blockHash)
-                    	  .param("txid",txid)
-                    	  .param("n",n)
-                    	  .param("value",value)
-                    	  .param("address",address).update();
-                    	  
+                        double value = vout.path("value").asDouble(0d);
+                        int n = vout.path("n").asInt(0);
+                        String address = vout.path("address").asString(null);
+
+                        insertTxOutputSPec
+                            .param("blockhash", blockHash)
+                            .param("txid", txid)
+                            .param("n", n)
+                            .param("value", value)
+                            .param("address", address)
+                            .update();
+
                         BigDecimal total =
                             txValue.get().add(vout.path("value").asDecimal(new BigDecimal(0)));
                         txValue.set(total);
                       });
-
-             
 
               double fee = tx.path("fee").asDouble(0d);
               int locktime = tx.path("locktime").asInt(0);
@@ -341,12 +338,9 @@ size = excluded.size
               int size = tx.path("size").asInt(0);
               int version = tx.path("version").asInt(0);
               AtomicReference<String> coinbaseRef = new AtomicReference<String>(null);
-              
-              
-              
-  
+
               String txinputSql =
-                      """
+                  """
 
 insert into tx_input (txid,blockhash,from_coinbase,from_n, from_txid) values
 (
@@ -358,7 +352,7 @@ insert into tx_input (txid,blockhash,from_coinbase,from_n, from_txid) values
 	)
 
 """;
-StatementSpec txInputSpec = jdbc.sql(txinputSql);
+              StatementSpec txInputSpec = jdbc.sql(txinputSql);
 
               tx.path("vin")
                   .forEach(
@@ -373,25 +367,24 @@ StatementSpec txInputSpec = jdbc.sql(txinputSql);
 
                         int vout = vin.path("vout").asInt(0);
 
-
                         // also has txwitness array which we don't care about for now
 
-                        int c = txInputSpec
-                            .param("txid", txid)
-                            .param("blockhash", blockHash)
-                            .param("from_txid", inputTxId)
-                            .param("from_coinbase", coinbase)
-                            .param("from_n", vout)
-                            .update();
-               
+                        int c =
+                            txInputSpec
+                                .param("txid", txid)
+                                .param("blockhash", blockHash)
+                                .param("from_txid", inputTxId)
+                                .param("from_coinbase", coinbase)
+                                .param("from_n", vout)
+                                .update();
                       });
               insertTxSpec
                   .param("txid", txid)
                   .param("fee", fee)
-                  .param("locktime",locktime)
-                  .param("weight",weight)
-                  .param("size",size)
-                  .param("version",version)
+                  .param("locktime", locktime)
+                  .param("weight", weight)
+                  .param("size", size)
+                  .param("version", version)
                   .param("value", txValue.get())
                   .param("blockhash", blockHash)
                   .param("coinbase", coinbaseRef.get())
@@ -471,7 +464,6 @@ difficulty,chainwork,bits,ntx,strippedsize,size,weight) values
 )
 
 """;
-
 
     blockTable
         .sql(sql)
