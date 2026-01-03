@@ -1,9 +1,12 @@
 package bq;
 
+import bq.command.RefreshCommand;
+import bq.provider.DataProviders;
 import bq.provider.bitcoin.AmazonBitcoinClient;
 import bq.provider.bitcoin.BitcoinClient;
 import bq.provider.bitcoin.BitcoinIndexer;
 import bx.sql.Db;
+import bx.sql.duckdb.DuckS3Extension;
 import bx.util.Config;
 import bx.util.Slogger;
 import com.google.common.base.Preconditions;
@@ -28,6 +31,12 @@ public class App {
   public static void main(String[] args) throws Exception {
 
     logger.atDebug().log("args: {}", List.of(args));
+
+    int exitCode = new CommandLine(new App()).execute(args);
+    System.exit(exitCode);
+  }
+
+  private void initConfig() {
     Config cfg = Config.get();
 
     if (cfg.get("DB_URL").isEmpty()) {
@@ -38,32 +47,34 @@ public class App {
       Preconditions.checkState(cfg.get("DB_URL").orElse("").equals(DEFAULT_DB_URL));
     }
     Db db = Db.get();
-
+    DataProviders.get().dataSource(db.getDataSource());
     logger.atInfo().log("db: {}", db);
-
-    int exitCode = new CommandLine(new App()).execute(args);
-    System.exit(exitCode);
   }
 
-  @Command(name = "fetch", description = "fetch data")
-  int subCommandViaMethod(
-      @Parameters(
-              arity = "1..*",
-              paramLabel = "<countryCode>",
-              description = "country code(s) to be resolved")
-          String[] countryCodes) {
+  @Command(name = "refresh", description = "update data")
+  void subCommandViaMethod2(@Parameters(arity = "0") String[] countryCodes) {
 
-    return 0;
-  }
+    requireBucket();
+    initConfig();
 
-  @Command(name = "update", description = "update data")
-  void subCommandViaMethod2(
-      @Parameters(
-              arity = "1..*",
-              paramLabel = "<countryCode>",
-              description = "country code(s) to be resolved")
-          String[] countryCodes) {
     System.out.println("update");
+    System.out.println(Config.get().get("BQ_BUCKET"));
+
+    Preconditions.checkState(Db.get() != null);
+    Preconditions.checkState(Db.get().getDataSource() != null);
+    DuckS3Extension.load(Db.get().getDataSource()).useCredentialChain();
+    RefreshCommand c =
+        new RefreshCommand()
+            .dataSource(Db.get().getDataSource())
+            .bucket(Config.get().get("BQ_BUCKET").orElse("INVALID_BUCKET"));
+    c.run();
+  }
+
+  private void requireBucket() {
+    if (Config.get().get("BQ_BUCKET").isEmpty()) {
+      System.err.println("ERROR: BQ_BUCKET not set");
+      System.exit(1);
+    }
   }
 
   @Command(name = "bcfetch", description = "update data")

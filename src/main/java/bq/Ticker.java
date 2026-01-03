@@ -10,7 +10,7 @@ public class Ticker {
   TickerType type;
   String unqualified;
 
-  static Set<String> KNOWN_INDICES = Set.of("RUT", "NQ", "NDQ", "SPX", "DJIA");
+  static Set<String> KNOWN_INDICES = Set.of("RUT", "NQ", "NDX", "SPX", "DJIA");
   static Set<String> KNOWN_CRYPTO =
       Set.of(
           "BTC", "ETH", "ADA", "DOGE", "WIF", "SUI", "SOL", "HYPE", "RNDR", "RENDER", "FETCH",
@@ -136,7 +136,7 @@ public class Ticker {
     Preconditions.checkArgument(t.getType() != null, "invalid symbol: %s", t);
     Preconditions.checkArgument(S.isNotBlank(t.getSymbol()), "invalid symbol: %s", t.getSymbol());
     Preconditions.checkArgument(
-        t.getSymbol().chars().allMatch(c -> Character.isLetterOrDigit(c)),
+        t.getSymbol().chars().allMatch(c -> (Character.isLetterOrDigit(c)) || c == '.'),
         "invalid symbol: %s",
         t.getSymbol());
     return t;
