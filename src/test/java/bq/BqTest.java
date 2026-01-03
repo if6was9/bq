@@ -166,7 +166,6 @@ public abstract class BqTest {
     TestData testData = new TestData(getDataSource());
     return testData;
   }
-  
 
   public String getTestS3BucketName() {
     String val = Config.get().get("BQ_BUCKET").orElse("test.bitquant.cloud");

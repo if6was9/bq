@@ -1,10 +1,10 @@
 package bq;
 
+import bq.command.RefreshCommand;
+import bq.provider.DataProviders;
 import bq.provider.bitcoin.AmazonBitcoinClient;
 import bq.provider.bitcoin.BitcoinClient;
 import bq.provider.bitcoin.BitcoinIndexer;
-import bq.command.RefreshCommand;
-import bq.provider.DataProviders;
 import bx.sql.Db;
 import bx.sql.duckdb.DuckS3Extension;
 import bx.util.Config;
@@ -74,30 +74,6 @@ public class App {
     if (Config.get().get("BQ_BUCKET").isEmpty()) {
       System.err.println("ERROR: BQ_BUCKET not set");
       System.exit(1);
-    }
-  }
-
-  @Command(name = "bcfetch", description = "update data")
-  void fetchBlockChain() {
-
-    DataSource ds = Db.get().getDataSource();
-    BitcoinClient client = AmazonBitcoinClient.create();
-
-    JsonNode info = client.getBlockChainInfo();
-    int blockCount = info.path("blocks").asInt();
-    BitcoinIndexer bi = new BitcoinIndexer().client(client).dataSource(ds).createTables();
-    for (int i = 0; i < blockCount; i++) {
-
-      if (bi.hasBlockInDb(i)) {
-        logger.atInfo().log("already have block: {}", i);
-      } else {
-        bi.processBlock(i);
-
-        if (i % 100 == 0) {
-          bi.getBlockTable().show();
-          bi.getTxTable().show();
-        }
-      }
     }
   }
 

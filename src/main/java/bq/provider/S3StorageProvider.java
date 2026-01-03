@@ -1,20 +1,12 @@
 package bq.provider;
 
-
 import bq.BqException;
-
 import bq.PriceTable;
 import bq.Ticker;
 import bq.Ticker.TickerType;
 import bx.sql.duckdb.DuckS3Extension;
 import bx.util.S;
 import bx.util.Slogger;
-
-import com.google.common.base.Preconditions;
-import java.util.UUID;
-import javax.sql.DataSource;
-import org.slf4j.Logger;
-import org.springframework.jdbc.core.simple.JdbcClient;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -36,14 +28,11 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
-
 public class S3StorageProvider extends StorageProvider {
 
   Logger logger = Slogger.forEnclosingClass();
 
-
   DataSource dataSource;
-
 
   public S3StorageProvider() {}
 
@@ -52,7 +41,6 @@ public class S3StorageProvider extends StorageProvider {
     dataSource(ds);
     bucket(bucket);
   }
-
 
   public class PriceDataS3Object {
     S3Object obj;
@@ -69,15 +57,14 @@ public class S3StorageProvider extends StorageProvider {
       return S3StorageProvider.this.getTicker(obj).orElse(null);
     }
 
-
     public String toUrl() {
-    	return toUrl(getTicker());
+      return toUrl(getTicker());
     }
-    String toUrl(Ticker ticker) {
-        Preconditions.checkState(S.isNotBlank(getBucket()), "bucket must be set");
-        return String.format("s3://%s/%s", getBucket(), toKey(ticker));
 
-      }
+    String toUrl(Ticker ticker) {
+      Preconditions.checkState(S.isNotBlank(getBucket()), "bucket must be set");
+      return String.format("s3://%s/%s", getBucket(), toKey(ticker));
+    }
 
     public String toString() {
       return MoreObjects.toStringHelper(this)
@@ -86,7 +73,6 @@ public class S3StorageProvider extends StorageProvider {
           .toString();
     }
   }
-
 
   String toPrefix(TickerType tt) {
     Preconditions.checkNotNull(tt);
@@ -106,11 +92,11 @@ public class S3StorageProvider extends StorageProvider {
     return String.format("%s/1d/%s.csv", toPrefix(t.getType()), t.getSymbol().toUpperCase());
   }
 
-
   String toUrl(Ticker ticker) {
     Preconditions.checkState(S.isNotBlank(getBucket()), "bucket must be set");
     return String.format("s3://%s/%s", getBucket(), toKey(ticker));
   }
+
   Duration getTimeSinceLastModified(S3Object x) {
     Instant t = x.lastModified();
     return Duration.between(t, Instant.now());
@@ -148,8 +134,6 @@ public class S3StorageProvider extends StorageProvider {
     }
     return Optional.empty();
   }
-
- 
 
   @Override
   public PriceTable createTableFromStorage(Ticker ticker) {
@@ -199,8 +183,6 @@ public class S3StorageProvider extends StorageProvider {
     int count = getJdbcClient().sql(sql).update();
     logger.atInfo().log("wrote {}", count);
   }
-
-
 
   public List<PriceDataS3Object> listIndices() {
     return list("indices/1d/");
@@ -289,5 +271,4 @@ public class S3StorageProvider extends StorageProvider {
     }
     return new PriceTable(getDataSource(), table);
   }
-
 }
