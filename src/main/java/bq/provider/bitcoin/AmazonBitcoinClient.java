@@ -17,6 +17,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import tools.jackson.databind.JsonNode;
 
@@ -42,7 +44,7 @@ public class AmazonBitcoinClient extends BitcoinClient {
   }
 
   RequestBodyEntity injectHeaders(RequestBodyEntity rbe) {
-    AwsV4HttpSigner signer = AwsV4HttpSigner.create();
+    AwsV4aHttpSigner signer = AwsV4aHttpSigner.create();
 
     // mainnet.bitcoin.managedblockchain.us-east-1.amazonaws.com
     // 2. Build the request representation
@@ -68,6 +70,7 @@ public class AmazonBitcoinClient extends BitcoinClient {
                     r.identity(id)
                         .request(request)
                         .payload(ContentStreamProvider.fromByteArray(val))
+                        .putProperty(AwsV4aHttpSigner.REGION_SET, RegionSet.create("us-east-1"))
                         .putProperty(
                             AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SERVICE_SIGNING_NAME)
                         .putProperty(AwsV4HttpSigner.REGION_NAME, DEFAULT_REGION))

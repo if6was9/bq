@@ -62,6 +62,12 @@
 		</dependency>
 
 		<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>http-auth-aws-crt</artifactId>
+		<version>2.40.16</version>
+</dependency>
+
+		<dependency>
 			<groupId>org.ta4j</groupId>
 			<artifactId>ta4j-core</artifactId>
 			<version>0.22.0</version>
