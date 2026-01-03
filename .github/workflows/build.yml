@@ -25,7 +25,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::550534291128:role/gha-if6was9-aws-access
-          aws-region: us-west-2
+          aws-region: us-east-1
 
       - name: Verify Authentication
         run: aws sts get-caller-identity
