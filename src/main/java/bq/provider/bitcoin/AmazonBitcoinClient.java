@@ -1,7 +1,6 @@
 package bq.provider.bitcoin;
 
 import bx.util.Json;
-import bx.util.S;
 import bx.util.Slogger;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Suppliers;
@@ -78,33 +77,18 @@ public class AmazonBitcoinClient extends BitcoinClient {
         .headers()
         .forEach(
             (k, v) -> {
-              v.forEach(
-                  headerValue -> {
-                    rbe.headerReplace(k, headerValue);
-                  });
+              if (!k.equalsIgnoreCase("host")) {
+                v.forEach(
+                    headerValue -> {
+                      rbe.headerReplace(k, headerValue);
+                    });
+              }
             });
     return rbe;
   }
 
-  private void updateSystemProperty() {
-
-    String val = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
-    if (val != null && val.toLowerCase().contains("host")) {
-      return;
-    }
-
-    if (S.isEmpty(val)) {
-      val = "host";
-    } else {
-      val = val + ",host";
-    }
-
-    System.setProperty("jdk.httpclient.allowRestrictedHeaders", val);
-  }
-
   public tools.jackson.databind.JsonNode invokeRaw(JsonNode request) {
 
-    updateSystemProperty();
     URI uri = URI.create(DEFAULT_ENDPOINT);
 
     byte[] body = request.toString().getBytes();
