@@ -67,6 +67,12 @@
 		<version>2.40.16</version>
 </dependency>
 
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>sts</artifactId>
+    <version>2.40.16</version>
+</dependency>
+
 		<dependency>
 			<groupId>org.ta4j</groupId>
 			<artifactId>ta4j-core</artifactId>

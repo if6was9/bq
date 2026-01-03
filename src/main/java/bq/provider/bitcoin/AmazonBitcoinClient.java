@@ -20,6 +20,8 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sts.StsClient;
 import tools.jackson.databind.JsonNode;
 
 public class AmazonBitcoinClient extends BitcoinClient {
@@ -60,7 +62,11 @@ public class AmazonBitcoinClient extends BitcoinClient {
 
     byte[] val = (byte[]) rbe.getBody().get().uniPart().getValue();
 
-    AwsCredentialsIdentity id = credentialsSupplier.get().resolveIdentity().join();
+   
+    System.out.println(StsClient.create().getCallerIdentity().arn());
+    System.out.println(StsClient.builder().region(Region.US_EAST_1).build().getCallerIdentity().arn());
+    System.out.println(StsClient.builder().region(Region.US_WEST_2).build().getCallerIdentity().arn());
+    AwsCredentialsIdentity id = credentialsSupplier.get().resolveCredentials();
 
     // 3. Execute the signing process
     var signedResult =
