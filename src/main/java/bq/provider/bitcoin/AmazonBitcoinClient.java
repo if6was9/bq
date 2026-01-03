@@ -1,12 +1,8 @@
 package bq.provider.bitcoin;
 
 import bx.util.Json;
-import bx.util.S;
 import bx.util.Slogger;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Suppliers;
-import java.net.URI;
-import java.util.function.Supplier;
 import kong.unirest.core.HttpResponse;
 import kong.unirest.core.RequestBodyEntity;
 import kong.unirest.core.Unirest;
@@ -30,11 +26,10 @@ public class AmazonBitcoinClient extends BitcoinClient {
   public static final String DEFAULT_REGION = "us-east-1";
   public static final String SERVICE_SIGNING_NAME = "managedblockchain";
 
-  static Supplier<AwsCredentialsProvider> credentialsSupplier =
-      Suppliers.memoize(
-          () -> {
-            return DefaultCredentialsProvider.builder().build();
-          });
+  static final AwsCredentialsProvider DEFAULT_CREDENTIALS_PROVIDER =
+      DefaultCredentialsProvider.builder().build();
+
+  AwsCredentialsProvider credentialsProvider = DEFAULT_CREDENTIALS_PROVIDER;
 
   private AmazonBitcoinClient() {}
 
@@ -59,7 +54,7 @@ public class AmazonBitcoinClient extends BitcoinClient {
 
     byte[] val = (byte[]) rbe.getBody().get().uniPart().getValue();
 
-    AwsCredentialsIdentity id = credentialsSupplier.get().resolveIdentity().join();
+    AwsCredentialsIdentity id = credentialsProvider.resolveCredentials();
 
     // 3. Execute the signing process
     var signedResult =
@@ -78,38 +73,22 @@ public class AmazonBitcoinClient extends BitcoinClient {
         .headers()
         .forEach(
             (k, v) -> {
-              v.forEach(
-                  headerValue -> {
-                    rbe.headerReplace(k, headerValue);
-                  });
+              if (!k.equalsIgnoreCase("host")) {
+                v.forEach(
+                    headerValue -> {
+                      rbe.headerReplace(k, headerValue);
+                    });
+              }
             });
     return rbe;
   }
 
-  private void updateSystemProperty() {
-
-    String val = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
-    if (val != null && val.toLowerCase().contains("host")) {
-      return;
-    }
-
-    if (S.isEmpty(val)) {
-      val = "host";
-    } else {
-      val = val + ",host";
-    }
-
-    System.setProperty("jdk.httpclient.allowRestrictedHeaders", val);
-  }
-
-  public tools.jackson.databind.JsonNode invokeRaw(JsonNode request) {
-
-    updateSystemProperty();
-    URI uri = URI.create(DEFAULT_ENDPOINT);
+  protected tools.jackson.databind.JsonNode invokeRaw(JsonNode request) {
 
     byte[] body = request.toString().getBytes();
 
-    RequestBodyEntity rbe = Unirest.post(uri.toString()).contentType("application/json").body(body);
+    RequestBodyEntity rbe =
+        Unirest.post(DEFAULT_ENDPOINT).contentType("application/json").body(body);
 
     RequestBodyEntity rbe2 = injectHeaders(rbe);
 
@@ -129,14 +108,12 @@ public class AmazonBitcoinClient extends BitcoinClient {
 
     if (!response.isSuccess()) {
 
-      String message =
-          String.format(
-              "code=%s message=%s id=%s",
-              j.path("error").path("code").asInt(-1),
-              j.path("error").path("message").asString(null),
-              j.path("id").asString(null));
-      throw new BitcoinClientException(response.getStatus(), message);
+      if (j.isObject()) {
+        extractResult(j);
+      }
+      throw new BitcoinClientException(response.getStatus());
     }
+
     return j;
   }
 }
