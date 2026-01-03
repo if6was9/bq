@@ -17,8 +17,6 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
-import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -46,7 +44,7 @@ public class AmazonBitcoinClient extends BitcoinClient {
   }
 
   RequestBodyEntity injectHeaders(RequestBodyEntity rbe) {
-    AwsV4aHttpSigner signer = AwsV4aHttpSigner.create();
+    AwsV4HttpSigner signer = AwsV4HttpSigner.create();
 
     // mainnet.bitcoin.managedblockchain.us-east-1.amazonaws.com
     // 2. Build the request representation
@@ -62,10 +60,11 @@ public class AmazonBitcoinClient extends BitcoinClient {
 
     byte[] val = (byte[]) rbe.getBody().get().uniPart().getValue();
 
-   
     System.out.println(StsClient.create().getCallerIdentity().arn());
-    System.out.println(StsClient.builder().region(Region.US_EAST_1).build().getCallerIdentity().arn());
-    System.out.println(StsClient.builder().region(Region.US_WEST_2).build().getCallerIdentity().arn());
+    System.out.println(
+        StsClient.builder().region(Region.US_EAST_1).build().getCallerIdentity().arn());
+    System.out.println(
+        StsClient.builder().region(Region.US_WEST_2).build().getCallerIdentity().arn());
     AwsCredentialsIdentity id = credentialsSupplier.get().resolveCredentials();
 
     // 3. Execute the signing process
@@ -76,7 +75,6 @@ public class AmazonBitcoinClient extends BitcoinClient {
                     r.identity(id)
                         .request(request)
                         .payload(ContentStreamProvider.fromByteArray(val))
-                        .putProperty(AwsV4aHttpSigner.REGION_SET, RegionSet.create("us-east-1"))
                         .putProperty(
                             AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SERVICE_SIGNING_NAME)
                         .putProperty(AwsV4HttpSigner.REGION_NAME, DEFAULT_REGION))
